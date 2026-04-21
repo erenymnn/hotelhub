@@ -5,3 +5,4 @@ public enum RoomType {
     DOUBLE,
     SUITE
 }
+
