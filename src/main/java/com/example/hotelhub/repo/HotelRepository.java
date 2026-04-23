@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface HotelRepository extends JpaRepository<Hotel,Long> {
-// Spring Data JPA arka planda save, findById, findAll gibi metotları bizim için hazır edecek.
+// Spring arka planda save, findById, findAll gibi metotları bizim için hazır edecek
 }
