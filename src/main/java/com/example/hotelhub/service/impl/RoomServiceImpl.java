@@ -4,12 +4,12 @@ import com.example.hotelhub.dto.request.RoomRequest;
 import com.example.hotelhub.dto.response.RoomResponse;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.Room;
-import com.example.hotelhub.repo.HotelRepository;
-import com.example.hotelhub.repo.RoomRepository;
+import com.example.hotelhub.mapper.RoomMapper;
+import com.example.hotelhub.repository.HotelRepository;
+import com.example.hotelhub.repository.RoomRepository;
 import com.example.hotelhub.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 
 
 @Service
@@ -18,36 +18,22 @@ public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
+    private final RoomMapper roomMapper;
 
     @Override
     public RoomResponse addRoomToHotel(RoomRequest request) {
+        // 1. Önce ID'si verilen oteli bul
         Hotel hotel = hotelRepository.findById(request.hotelId())
                 .orElseThrow(() -> new RuntimeException("Otel Bulunamadı! ID: " + request.hotelId()));
-// 2. DTO'dan gelen verilerle yeni bir Oda (Entity) oluştur
-        Room room = new Room();
-        room.setRoomNumber(request.roomNumber());
-        room.setType(request.type());
-        room.setPricePerNight(request.pricePerNight());
-        room.setCapacity(request.capacity());
-// ÖNEMLİ: Odaya bulduğumuz oteli atıyoruz. Bu sayede veritabanında "hotel_id" sütunu dolacak.
+// 2. MapStruct ile DTO'yu Entity'ye çevir (İçinde henüz otel yok)
+        Room room = roomMapper.toEntity(request);
+// 3. KRİTİK DOKUNUŞ: Odayı bulduğumuz otele bağla (Zimmetle)
         room.setHotel(hotel);
-// 3. Odayı veritabanına kaydet
+// 4. Odayı veritabanına kaydet
         Room savedRoom = roomRepository.save(room);
-// 4. Temiz kod (Clean Code) prensibiyle manuel yazdığımız yardımcı metoda gönderip Response dön
-        return mapToResponse(savedRoom);
+// 5. Kaydedilen odayı tekrar DTO'ya çevirip dışarı dön
+        return roomMapper.toResponse(savedRoom);
 
 
-    }
-
-    // DRY (Don't Repeat Yourself) Prensibi için yardımcı metot
-    private RoomResponse mapToResponse(Room room) {
-        return new RoomResponse(
-                room.getId(),
-                room.getRoomNumber(),
-                room.getType(),
-                room.getPricePerNight(),
-                room.getCapacity(),
-                room.getIsAvailable()
-        );
     }
 }
