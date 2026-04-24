@@ -3,6 +3,7 @@ package com.example.hotelhub.service.impl;
 import com.example.hotelhub.dto.request.HotelRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.entity.Hotel;
+import com.example.hotelhub.exception.ResourceNotFoundException;
 import com.example.hotelhub.mapper.HotelMapper;
 import com.example.hotelhub.repository.HotelRepository;
 import com.example.hotelhub.service.HotelService;
@@ -43,7 +44,7 @@ public class HotelServiceImpl implements HotelService {
     public HotelResponse getHotelById(Long id) {
         // Oteli bul, bulamazsan hata fırlat
         Hotel hotel = hotelRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Otel Bulunamadı! ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
 
         // Bulunan oteli Response DTO'ya çevir
         return hotelMapper.toResponse(hotel);
@@ -52,7 +53,7 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public HotelResponse updateHotel(Long id, HotelRequest request) {
         //  Güncellenecek oteli veritabanından bul yoksa hata fırlat
-        Hotel hotel = hotelRepository.findById(id).orElseThrow(() -> new RuntimeException(id + "Idli otel Bulunamadı"));
+        Hotel hotel = hotelRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
         //  MapStruct metoduyla yeni verileri eski otelin üzerine yazdır
         hotelMapper.updateEntityFromRequest(request, hotel);
         // Güncellenmiş oteli kaydet
@@ -66,7 +67,7 @@ public class HotelServiceImpl implements HotelService {
     public void deleteHotel(Long id) {
 
         Hotel hotel = hotelRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException(id + "Id'li Oda bulunamadı!"));
+                .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
         hotelRepository.delete(hotel);
     }
 

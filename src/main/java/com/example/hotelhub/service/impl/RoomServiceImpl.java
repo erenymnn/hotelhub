@@ -4,6 +4,7 @@ import com.example.hotelhub.dto.request.RoomRequest;
 import com.example.hotelhub.dto.response.RoomResponse;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.Room;
+import com.example.hotelhub.exception.ResourceNotFoundException;
 import com.example.hotelhub.mapper.RoomMapper;
 import com.example.hotelhub.repository.HotelRepository;
 import com.example.hotelhub.repository.RoomRepository;
@@ -24,7 +25,7 @@ public class RoomServiceImpl implements RoomService {
     public RoomResponse addRoomToHotel(RoomRequest request) {
         // 1. Önce ID'si verilen oteli bul
         Hotel hotel = hotelRepository.findById(request.hotelId())
-                .orElseThrow(() -> new RuntimeException("Otel Bulunamadı! ID: " + request.hotelId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + request.hotelId()));
 // 2. MapStruct ile DTO'yu Entity'ye çevir (İçinde henüz otel yok)
         Room room = roomMapper.toEntity(request);
 // 3. KRİTİK DOKUNUŞ: Odayı bulduğumuz otele bağla (Zimmetle)
