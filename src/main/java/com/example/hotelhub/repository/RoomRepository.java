@@ -1,4 +1,4 @@
-package com.example.hotelhub.repo;
+package com.example.hotelhub.repository;
 
 import com.example.hotelhub.entity.Room;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -32,5 +32,15 @@ public class HotelController {
     public ResponseEntity<HotelResponse> create(@Valid @RequestBody HotelRequest request) {
         return new ResponseEntity<>(hotelService.createHotel(request), HttpStatus.CREATED);
     }
-
+    @PutMapping("/{id}")
+    public ResponseEntity<HotelResponse> updateHotel(@PathVariable Long id,@Valid @RequestBody HotelRequest request)
+    {
+        return ResponseEntity.ok(hotelService.updateHotel(id,request));
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteHotel(@PathVariable Long id){
+      hotelService.deleteHotel(id);
+      return ResponseEntity.noContent().build(); // oteli sildim Ama sana geri döndürebileceğim bir veri (Content) kalmadı, bu yüzden boş dönüyor anlamına gelir.
+  // .build() ise Spring Boot'un ResponseEntity nesnesi oluşturmasını sağlar.
+    }
 }

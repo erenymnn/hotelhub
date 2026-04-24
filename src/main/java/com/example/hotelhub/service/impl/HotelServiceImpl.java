@@ -48,4 +48,27 @@ public class HotelServiceImpl implements HotelService {
         // Bulunan oteli Response DTO'ya çevir
         return hotelMapper.toResponse(hotel);
     }
+
+    @Override
+    public HotelResponse updateHotel(Long id, HotelRequest request) {
+        //  Güncellenecek oteli veritabanından bul yoksa hata fırlat
+        Hotel hotel = hotelRepository.findById(id).orElseThrow(() -> new RuntimeException(id + "Idli otel Bulunamadı"));
+        //  MapStruct metoduyla yeni verileri eski otelin üzerine yazdır
+        hotelMapper.updateEntityFromRequest(request, hotel);
+        // Güncellenmiş oteli kaydet
+        Hotel updatedHotel = hotelRepository.save(hotel);
+        // ve son olarak geri dön
+        return hotelMapper.toResponse(updatedHotel);
+
+    }
+
+    @Override
+    public void deleteHotel(Long id) {
+
+        Hotel hotel = hotelRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(id + "Id'li Oda bulunamadı!"));
+        hotelRepository.delete(hotel);
+    }
+
+
 }
