@@ -13,12 +13,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. CSRF korumasını kapatıyoruz ki POST istekleri Postman'den geçebilsin
-                .csrf(AbstractHttpConfigurer::disable)
-
-                // 2. Şimdilik TÜM isteklere şifresiz izin veriyoruz (JWT yazana kadar)
+                .csrf(csrf -> csrf.disable()) // API projelerinde (Postman ile test için) devre dışı bırakılır
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()
+                        .anyRequest().permitAll() // ŞİMDİLİK her şeyi kabul et (accept) diyoruz
                 );
 
         return http.build();
