@@ -3,6 +3,7 @@ package com.example.hotelhub.dto.response;
 import com.example.hotelhub.entity.RoomType;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public record RoomResponse(
         Long id,
@@ -10,6 +11,7 @@ public record RoomResponse(
         RoomType type,
         BigDecimal pricePerNight,
         Integer capacity,
+        List<String> features,
         Boolean isAvailable
 ) {
 }
