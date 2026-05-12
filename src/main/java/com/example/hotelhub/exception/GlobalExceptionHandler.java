@@ -24,4 +24,17 @@ public class GlobalExceptionHandler {
         // 2. Bunu frontend'e 404 Not Found statüsüyle dönüyoruz
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+
+        // 1. Şık kuryemizi (ErrorResponse) dolduruyoruz
+        ErrorResponse errorResponse=new ErrorResponse(
+                LocalDateTime.now(),
+                ex.getMessage(), // İçine yazdığımız "Otel Bulunamadı!" mesajını alır
+                HttpStatus.CONFLICT.value() // 404 kodunu alır
+        );
+        // 2. Bunu frontend'e 404 Not Found statüsüyle dönüyoruz
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
 }
