@@ -32,6 +32,13 @@ public class Hotel {
     @Column(columnDefinition = "TEXT") //bu anatasyon @Lob a göre daha temiz ve güvenli yoldur . @Lob veriyi başka bir tabloda tutup ıd ile referans verme yapabilir.
     private String description;
     private boolean is_Deleted=false;
+
+    // OTELİN YÖNETİCİSİ (SAHİBİ) İLİŞKİSİ
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    private User manager;
+
+
     @OneToMany(mappedBy = "hotel",cascade = CascadeType.ALL,orphanRemoval = true)
     private List<Room> rooms=new ArrayList<>();
 

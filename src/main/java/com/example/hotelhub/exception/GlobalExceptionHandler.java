@@ -37,4 +37,17 @@ public class GlobalExceptionHandler {
         // 2. Bunu frontend'e 404 Not Found statüsüyle dönüyoruz
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
+    // REZERVASYON ÇAKIŞMASI VE MANTIK HATALARINI YAKALAR
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                ex.getMessage(), // "Seçtiğiniz tarihlerde bu oda maalesef doludur!"
+                HttpStatus.BAD_REQUEST.value() // 400 Bad Request kodu
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
 }

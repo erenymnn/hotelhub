@@ -6,11 +6,15 @@ import com.example.hotelhub.dto.response.HotelResponse;
 import java.util.List;
 
 public interface HotelService {
-    HotelResponse createHotel(HotelRequest request);
+    // Güvenlik ve sahiplik kontrolü için 'String userEmail' parametreleri eklendi
+    HotelResponse createHotel(HotelRequest request, String userEmail);
 
     List<HotelResponse> getAllHotels();
+
     HotelResponse getHotelById(Long id);
-    HotelResponse updateHotel(Long id, HotelRequest request);
-    void deleteHotel(Long id);
+
+    HotelResponse updateHotel(Long id, HotelRequest request, String userEmail);
+
+    void deleteHotel(Long id, String userEmail);
 
 }

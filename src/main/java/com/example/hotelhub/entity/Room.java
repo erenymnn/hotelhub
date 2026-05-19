@@ -34,6 +34,11 @@ public class Room {
 
     // Varsayılan olarak true atadık
     private Boolean isAvailable=true;
+    private Boolean hasAirConditioning=true; //klima
+    private Boolean hasBalcony=true; //balkon
+
+    private String viewType; //deniz manzarası vs
+
 
     private boolean is_Deleted = false; // Soft delete için bu alan şart
     @ElementCollection
