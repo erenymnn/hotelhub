@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // 👈 KRİTİK: Metot seviyesinde yetkilendirmeyi (PreAuthorize) aktif eder!
+@EnableMethodSecurity //  Metot seviyesinde yetkilendirmeyi (PreAuthorize) aktif eder
 @RequiredArgsConstructor // Bunu ekledik ki filtreyi içeri alabilsin
 public class SecurityConfig {
 
@@ -26,8 +26,10 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/error").permitAll() // Login, Register ve Hata mesajları serbest
-                        .anyRequest().authenticated() // DİĞER HER ŞEY KİLİTLİ!
+                        // Login, Register, Hata mesajları VE Otel Arama kısımları herkese açık (serbest)
+                        .requestMatchers("/api/auth/**", "/error", "/api/hotels/search").permitAll()
+                        // Rezervasyon yapmak, iptal etmek vb. DİĞER HER ŞEY KİLİTLİ!
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Session yok, sadece Token!

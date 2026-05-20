@@ -16,7 +16,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. BULUNAMADI HATALARI (404 Not Found)
+    // BULUNAMADI HATALARI (404 Not Found)
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    // 2. ÇAKIŞMA HATALARI (409 Conflict - Kopyala/Yapıştır hatası düzeltildi)
+    // ÇAKIŞMA HATALARI
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -35,11 +35,11 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 HttpStatus.CONFLICT.value()
         );
-        // Bura 404 kalmıştı, 409 CONFLICT olarak düzeltildi
+
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-    // 3. ÖZEL REZERVASYON ÇAKIŞMASI HATASI (409 Conflict - EKSİKTİ, EKLENDİ)
+    //  ÖZEL REZERVASYON ÇAKIŞMASI HATASI
     @ExceptionHandler(RoomAlreadyBookedException.class)
     public ResponseEntity<ErrorResponse> handleRoomAlreadyBookedException(RoomAlreadyBookedException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-    // 4. MANTIK HATALARI (400 Bad Request - IllegalArgumentException eklendi)
+    //  MANTIK HATALARI (400 Bad Request )
     @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class})
     public ResponseEntity<ErrorResponse> handleLogicExceptions(RuntimeException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // 5. DTO VALIDASYON HATALARI (@Valid patladığında çalışır - EKSİKTİ, EKLENDİ)
+    //  DTO VALIDASYON HATALARI
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -72,5 +72,35 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+    //  JWT SÜRESİ DOLMA HATASI (401 Unauthorized)
+    @ExceptionHandler(io.jsonwebtoken.ExpiredJwtException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredJwtException(io.jsonwebtoken.ExpiredJwtException ex) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                "Oturum süreniz dolmuş! Lütfen yeniden giriş yapınız.",
+                HttpStatus.UNAUTHORIZED.value()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    // GEÇERSİZ VEYA BOZUK JWT HATASI (401 Unauthorized)
+    // Eğer kötü niyetli biri token'daki harfleri değiştirirse bu hatalar fırlar
+    @ExceptionHandler({
+            io.jsonwebtoken.security.SignatureException.class,
+            io.jsonwebtoken.MalformedJwtException.class,
+            io.jsonwebtoken.UnsupportedJwtException.class
+    })
+    public ResponseEntity<ErrorResponse> handleJwtSignatureException(Exception ex) {
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                LocalDateTime.now(),
+                "Geçersiz veya hatalı kimlik kartı (Token) tespit edildi!",
+                HttpStatus.UNAUTHORIZED.value()
+        );
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 }
