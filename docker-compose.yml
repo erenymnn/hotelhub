@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+
+  postgres-db:
+    image: postgres:15-alpine
+    container_name: hotelhub-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: hotelHub
+    ports:
+      - "5433:5432"
+    networks:
+      - hotelhub-network
+
+
+  hotelhub-app:
+    build: .
+    container_name: hotelhub-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db                 #
+    environment:
+
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/hotelHub
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    networks:
+      - hotelhub-network
+
+
+networks:
+  hotelhub-network:
+    driver: bridge
