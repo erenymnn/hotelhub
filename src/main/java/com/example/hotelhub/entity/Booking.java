@@ -19,18 +19,18 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
 
-    LocalDate checkInDate;
-    LocalDate checkOutDate;
+   private LocalDate checkInDate;
+   private LocalDate checkOutDate;
 
-    BigDecimal totalPrice;
+    private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
-    BookingStatus status;
+    private  BookingStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    User user;
+    private  User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    Room room;
+    private Room room;
 
 }

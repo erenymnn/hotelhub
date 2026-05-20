@@ -15,7 +15,7 @@ public class HotelSpecification {
 
             List<Predicate> predicates = new ArrayList<>();
 
-            // 1. Şehir Filtresi (En Güvenli UPPER Eşleşmesi)
+            // Şehir Filtresi (En Güvenli UPPER Eşleşmesi)
             if (request.city() != null && !request.city().isBlank()) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.function("UPPER", String.class, root.get("city")),
@@ -23,7 +23,7 @@ public class HotelSpecification {
                 ));
             }
 
-            // 2. İlçe Filtresi
+            //  İlçe Filtresi
             if (request.district() != null && !request.district().isBlank()) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.function("UPPER", String.class, root.get("district")),
@@ -31,14 +31,14 @@ public class HotelSpecification {
                 ));
             }
 
-            // 3. Minimum Puan Filtresi
+            //  Minimum Puan Filtresi
             if (request.minRating() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(
                         root.get("rating"),
                         request.minRating()
                 ));
             }
-// 4. MAKSİMUM FİYAT FİLTRESİ (Otel -> Oda İlişkisi üzerinden Join)
+         //  MAKSİMUM FİYAT FİLTRESİ (Otel -> Oda İlişkisi üzerinden Join)
             if (request.maxPrice() != null) {
                 // Hotel sınıfındaki liste adı: "rooms"
                 jakarta.persistence.criteria.Join<Object, Object> roomsJoin = root.join("rooms");
@@ -52,10 +52,43 @@ public class HotelSpecification {
                 // Optimizasyon
                 query.distinct(true);
             }
+
+            // 5. MÜSAİTLİK VE TARİH FİLTRESİ
+            if (request.checkInDate() != null && request.checkOutDate() != null) {
+
+                // 1. Otele ait odalara bağlan (Sadece odası olan oteller gelsin)
+                jakarta.persistence.criteria.Join<Object, Object> roomJoin = root.join("rooms");
+
+                // 2. Alt Sorgu (SubQuery): Belirtilen tarihlerde DOLU olan odaların ID'lerini bul
+                jakarta.persistence.criteria.Subquery<Long> busyRoomsQuery = query.subquery(Long.class);
+                jakarta.persistence.criteria.Root<com.example.hotelhub.entity.Booking> bookingRoot = busyRoomsQuery.from(com.example.hotelhub.entity.Booking.class);
+
+                // Alt sorgu bize sadece dolu odaların ID'sini döndürecek
+                busyRoomsQuery.select(bookingRoot.get("room").get("id"));
+
+                // Çakışma Şartı: (b.checkIn < reqOut) AND (b.checkOut > reqIn) AND (status = CONFIRMED)
+                Predicate overlapCondition = criteriaBuilder.and(
+                        criteriaBuilder.lessThan(bookingRoot.get("checkInDate"), request.checkOutDate()),
+                        criteriaBuilder.greaterThan(bookingRoot.get("checkOutDate"), request.checkInDate()),
+                        // Sadece ONAYLI rezervasyonlar odayı meşgul eder (Kendi Enum ismine göre CONFIRMED'i düzenleyebilirsin)
+                        criteriaBuilder.equal(bookingRoot.get("status"), com.example.hotelhub.entity.BookingStatus.CONFIRMED)
+                );
+                busyRoomsQuery.where(overlapCondition);
+
+                // 3. Ana Filtre: Otelin bu odasının ID'si, DOLU ODALAR (SubQuery) listesinin İÇİNDE OLMASIN (NOT IN)
+                predicates.add(criteriaBuilder.not(roomJoin.get("id").in(busyRoomsQuery)));
+
+                // Aynı oteli tekrarlı getirmemek için
+                query.distinct(true);
+            }
+
+
             // Silinmemiş otelleri getir
             predicates.add(criteriaBuilder.isFalse(root.get("is_Deleted")));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+
     }
+
 }
