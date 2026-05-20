@@ -3,7 +3,7 @@ package com.example.hotelhub.service.impl;
 import com.example.hotelhub.dto.request.BookingRequest;
 import com.example.hotelhub.dto.response.BookingResponse;
 import com.example.hotelhub.entity.Booking;
-import com.example.hotelhub.entity.BookingStatus;
+import com.example.hotelhub.entity.enums.BookingStatus;
 import com.example.hotelhub.entity.Room;
 import com.example.hotelhub.entity.User;
 import com.example.hotelhub.exception.ResourceNotFoundException;

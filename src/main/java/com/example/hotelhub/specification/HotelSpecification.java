@@ -2,7 +2,7 @@ package com.example.hotelhub.specification;
 
 import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.entity.Booking;
-import com.example.hotelhub.entity.BookingStatus;
+import com.example.hotelhub.entity.enums.BookingStatus;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.Room;
 import jakarta.persistence.criteria.Join;

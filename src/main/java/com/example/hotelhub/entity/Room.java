@@ -1,5 +1,6 @@
 package com.example.hotelhub.entity;
 
+import com.example.hotelhub.entity.enums.RoomType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;

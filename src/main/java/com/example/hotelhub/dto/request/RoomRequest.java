@@ -1,6 +1,6 @@
 package com.example.hotelhub.dto.request;
 
-import com.example.hotelhub.entity.RoomType;
+import com.example.hotelhub.entity.enums.RoomType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

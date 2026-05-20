@@ -1,4 +1,4 @@
-package com.example.hotelhub.entity;
+package com.example.hotelhub.entity.enums;
 
 public enum BookingStatus {
     PENDING,

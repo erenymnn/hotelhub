@@ -1,5 +1,6 @@
 package com.example.hotelhub.entity;
 
+import com.example.hotelhub.entity.enums.BookingStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

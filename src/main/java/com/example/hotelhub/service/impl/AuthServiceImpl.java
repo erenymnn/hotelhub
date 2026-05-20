@@ -4,7 +4,7 @@ import com.example.hotelhub.dto.request.LoginRequest;
 import com.example.hotelhub.dto.request.RegisterRequest;
 import com.example.hotelhub.dto.response.LoginResponse;
 import com.example.hotelhub.dto.response.RegisterResponse;
-import com.example.hotelhub.entity.Role;
+import com.example.hotelhub.entity.enums.Role;
 import com.example.hotelhub.entity.User;
 import com.example.hotelhub.exception.UserAlreadyExistsException;
 import com.example.hotelhub.repository.UserRepository;

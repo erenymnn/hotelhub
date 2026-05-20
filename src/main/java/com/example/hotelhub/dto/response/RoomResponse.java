@@ -1,6 +1,6 @@
 package com.example.hotelhub.dto.response;
 
-import com.example.hotelhub.entity.RoomType;
+import com.example.hotelhub.entity.enums.RoomType;
 
 import java.math.BigDecimal;
 import java.util.List;

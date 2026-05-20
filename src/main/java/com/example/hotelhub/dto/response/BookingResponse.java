@@ -1,8 +1,6 @@
 package com.example.hotelhub.dto.response;
 
-import com.example.hotelhub.entity.BookingStatus;
-import jakarta.validation.constraints.Future;
-import jakarta.validation.constraints.FutureOrPresent;
+import com.example.hotelhub.entity.enums.BookingStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
