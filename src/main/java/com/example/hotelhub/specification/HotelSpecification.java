@@ -53,20 +53,20 @@ public class HotelSpecification {
                 query.distinct(true);
             }
 
-            // 5. MÜSAİTLİK VE TARİH FİLTRESİ
+            // MÜSAİTLİK VE TARİH FİLTRESİ
             if (request.checkInDate() != null && request.checkOutDate() != null) {
 
-                // 1. Otele ait odalara bağlan (Sadece odası olan oteller gelsin)
+                //  Otele ait odalara bağlan (Sadece odası olan oteller gelsin)
                 jakarta.persistence.criteria.Join<Object, Object> roomJoin = root.join("rooms");
 
-                // 2. Alt Sorgu (SubQuery): Belirtilen tarihlerde DOLU olan odaların ID'lerini bul
+                // Belirtilen tarihlerde DOLU olan odaların ID'lerini bul
                 jakarta.persistence.criteria.Subquery<Long> busyRoomsQuery = query.subquery(Long.class);
                 jakarta.persistence.criteria.Root<com.example.hotelhub.entity.Booking> bookingRoot = busyRoomsQuery.from(com.example.hotelhub.entity.Booking.class);
 
                 // Alt sorgu bize sadece dolu odaların ID'sini döndürecek
                 busyRoomsQuery.select(bookingRoot.get("room").get("id"));
 
-                // Çakışma Şartı: (b.checkIn < reqOut) AND (b.checkOut > reqIn) AND (status = CONFIRMED)
+                // (b.checkIn < reqOut) AND (b.checkOut > reqIn) AND (status = CONFIRMED)
                 Predicate overlapCondition = criteriaBuilder.and(
                         criteriaBuilder.lessThan(bookingRoot.get("checkInDate"), request.checkOutDate()),
                         criteriaBuilder.greaterThan(bookingRoot.get("checkOutDate"), request.checkInDate()),

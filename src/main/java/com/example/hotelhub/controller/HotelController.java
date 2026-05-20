@@ -40,7 +40,7 @@ public class HotelController {
     }
 
 
-    // 3. SADECE YETKİLİLER: Otel ekleme. İşlemi yapanın e-postasını servise gönderiyoruz ki oteli ona zimmetleyelim.
+    //  SADECE YETKİLİLER: Otel ekleme. İşlemi yapanın e-postasını servise gönderiyoruz ki oteli ona zimmetleyelim.
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @PostMapping
     public ResponseEntity<HotelResponse> create(

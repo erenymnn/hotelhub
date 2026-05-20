@@ -46,25 +46,25 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        // Profesyonel dokunuş: String yerine Record dönüyoruz
+        //String yerine Record dönüyoruz
         return new RegisterResponse("Kullanıcı başarıyla kaydedildi!", user.getEmail());
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        // 1. Kullanıcı kontrolü
+        // Kullanıcı kontrolü
         User user = userRepository.findByEmail(request.email()) // request.email() oldu
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı!"));
 
-        // 2. Şifre kontrolü
+        // Şifre kontrolü
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new RuntimeException("Hatalı şifre!");
         }
 
-        // 3. Token üretimi
+        //  Token üretimi
         String token = jwtService.generateToken(user.getEmail());
 
-        // 4. Response'u gönder (Record constructor'ı ile)
+        //Response'u gönder (Record constructor'ı ile)
         return new LoginResponse(token, user.getEmail());
     }
 

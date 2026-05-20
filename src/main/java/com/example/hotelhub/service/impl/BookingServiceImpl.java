@@ -82,27 +82,27 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public void cancelBooking(Long bookingId, String userEmail) {
-        // 1. Rezervasyonu bul
+
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rezervasyon bulunamadı!"));
 
-        // 2. GÜVENLİK KONTROLÜ: Bu rezervasyon işlemi yapan kullanıcıya mı ait?
+        //  GÜVENLİK KONTROLÜ: Bu rezervasyon işlemi yapan kullanıcıya mı ait?
         if (!booking.getUser().getEmail().equals(userEmail)) {
             throw new IllegalStateException("Sadece kendi rezervasyonunuzu iptal edebilirsiniz!");
         }
 
-        // 3. İŞ MANTIĞI KONTROLÜ: Zaten iptal edilmiş mi?
+        // Zaten iptal edilmiş mi?
         if (booking.getStatus() == BookingStatus.CANCELED) {
             throw new IllegalStateException("Bu rezervasyon zaten iptal edilmiş!");
         }
 
-        // 4. İŞ MANTIĞI KONTROLÜ: Tarihi geçmiş veya başlamış rezervasyon iptal edilemez!
+        // Tarihi geçmiş veya başlamış rezervasyon iptal edilemez!
         // (Örn: Sadece giriş tarihinden en az 1 gün önce iptal edilebilir)
         if (!java.time.LocalDate.now().isBefore(booking.getCheckInDate())) {
             throw new IllegalStateException("Süresi geçmiş veya başlamış rezervasyonlar iptal edilemez!");
         }
 
-        // 5. PROFESYONEL YAKLAŞIM: İptal statüsüne çek
+        // İptal statüsüne çek
         booking.setStatus(BookingStatus.CANCELED);
         bookingRepository.save(booking);
     }
