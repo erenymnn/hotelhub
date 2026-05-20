@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
-// @RestControllerAdvice: Spring'e "Bütün Controller'ları izle, hata çıkarsa bana gönder" der.
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // BULUNAMADI HATALARI (404 Not Found)
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    // ÇAKIŞMA HATALARI
+
     @ExceptionHandler(UserAlreadyExistsException.class)
     public ResponseEntity<ErrorResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-    //  ÖZEL REZERVASYON ÇAKIŞMASI HATASI
+
     @ExceptionHandler(RoomAlreadyBookedException.class)
     public ResponseEntity<ErrorResponse> handleRoomAlreadyBookedException(RoomAlreadyBookedException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-    //  MANTIK HATALARI (400 Bad Request )
+
     @ExceptionHandler({IllegalStateException.class, IllegalArgumentException.class})
     public ResponseEntity<ErrorResponse> handleLogicExceptions(RuntimeException ex) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -61,7 +61,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    //  DTO VALIDASYON HATALARI
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -73,7 +73,7 @@ public class GlobalExceptionHandler {
         });
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
-    //  JWT SÜRESİ DOLMA HATASI (401 Unauthorized)
+
     @ExceptionHandler(io.jsonwebtoken.ExpiredJwtException.class)
     public ResponseEntity<ErrorResponse> handleExpiredJwtException(io.jsonwebtoken.ExpiredJwtException ex) {
 
@@ -86,8 +86,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
-    // GEÇERSİZ VEYA BOZUK JWT HATASI (401 Unauthorized)
-    // Eğer kötü niyetli biri token'daki harfleri değiştirirse bu hatalar fırlar
+
     @ExceptionHandler({
             io.jsonwebtoken.security.SignatureException.class,
             io.jsonwebtoken.MalformedJwtException.class,

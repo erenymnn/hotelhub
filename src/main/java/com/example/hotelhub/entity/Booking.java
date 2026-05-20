@@ -10,7 +10,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Booking {
@@ -19,16 +20,16 @@ public class Booking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long Id;
 
-   private LocalDate checkInDate;
-   private LocalDate checkOutDate;
+    private LocalDate checkInDate;
+    private LocalDate checkOutDate;
 
     private BigDecimal totalPrice;
 
     @Enumerated(EnumType.STRING)
-    private  BookingStatus status;
+    private BookingStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private  User user;
+    private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Room room;

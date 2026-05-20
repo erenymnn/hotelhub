@@ -21,7 +21,7 @@ public class JwtServiceImpl implements JwtService {
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
-//Kartın üzerine kullanıcının ismini (Email) yazar, "Şu tarihe kadar geçerlidir" diye not düşer ve en altına o gizli mühürle (SECRET_KEY) imzasını atar.
+
     @Override
     public String generateToken(String email) {
         return Jwts.builder()
@@ -51,7 +51,7 @@ public class JwtServiceImpl implements JwtService {
                 .getBody();
         return claimsResolver.apply(claims);
     }
-//Eğer getSignInKey metodunu Interface'e koysaydın, projedeki her yer senin imza anahtarına erişebilir hale gelirdi. Bu da büyük bir güvenlik açığıdır.
+
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);

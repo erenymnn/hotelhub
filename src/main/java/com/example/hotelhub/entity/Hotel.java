@@ -24,22 +24,22 @@ public class Hotel {
     private Long id;
     private String name;
     private String city;
-    private String district; //sadece şehir degil ilçe bilgiside gerekli
+    private String district;
     private String address;
     private Double rating;
-    private String number; //başındaki sıfırların kaybolmaması gereken veriler her zaman String olarak tutulmalıdır
+    private String number;
     private String email;
-    @Column(columnDefinition = "TEXT") //bu anatasyon @Lob a göre daha temiz ve güvenli yoldur . @Lob veriyi başka bir tabloda tutup ıd ile referans verme yapabilir.
+    @Column(columnDefinition = "TEXT")
     private String description;
-    private boolean is_Deleted=false;
+    private boolean is_Deleted = false;
 
-    // OTELİN YÖNETİCİSİ (SAHİBİ) İLİŞKİSİ
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "manager_id")
     private User manager;
 
 
-    @OneToMany(mappedBy = "hotel",cascade = CascadeType.ALL,orphanRemoval = true)
-    private List<Room> rooms=new ArrayList<>();
+    @OneToMany(mappedBy = "hotel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Room> rooms = new ArrayList<>();
 
 }

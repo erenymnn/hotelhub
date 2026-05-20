@@ -32,13 +32,13 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponse createBooking(BookingRequest request, String userEmail) {
-//   ODA VE KULLANICIYI BUL yksa hata fırlat
+
         Room room = roomRepository.findById(request.roomId())
                 .orElseThrow(() -> new ResourceNotFoundException("Oda bulunamadı!"));
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı!"));
 
-        //  Çıkış tarihi, giriş tarihinden önce veya aynı gün olamaz
+
         if (!request.checkOutDate().isAfter(request.checkInDate())) {
             throw new IllegalArgumentException("Çıkış tarihi, giriş tarihinden sonra olmalıdır!");
         }
@@ -49,14 +49,13 @@ public class BookingServiceImpl implements BookingService {
             throw new RoomAlreadyBookedException("Seçtiğiniz tarihlerde bu oda maalesef doludur!");
         }
 
-        //Kalınacak gün sayısını bul ve gecelik fiyatla çarp
+
         long daysBetween = ChronoUnit.DAYS.between(request.checkInDate(), request.checkOutDate());
         BigDecimal totalPrice = room.getPricePerNight().multiply(BigDecimal.valueOf(daysBetween));
 
 
-        // MapStruct bizim için tarihleri otomatik olarak request'ten alıp Entity'ye yerleştirecek
         Booking booking = bookingMapper.toEntity(request);
-        // Geriye kalan İş Mantığı kısımlarını biz setliyoruz
+
         booking.setRoom(room);
         booking.setUser(user);
         booking.setTotalPrice(totalPrice);
@@ -64,17 +63,17 @@ public class BookingServiceImpl implements BookingService {
 
         Booking savedBooking = bookingRepository.save(booking);
 
-        //  RESPONSE DÖN - MapStruct ile
+
         return bookingMapper.toResponse(savedBooking);
 
     }
 
     @Override
     public List<BookingResponse> getUserBookings(String userEmail) {
-        // 1. Kullanıcının tüm rezervasyonlarını veritabanından çek
+
         List<Booking> bookings = bookingRepository.findByUserEmail(userEmail);
 
-        // 2. MapStruct kullanarak gelen Entity listesini DTO listesine çevir ve dön
+
         return bookings.stream()
                 .map(bookingMapper::toResponse)
                 .toList();
@@ -86,23 +85,22 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Rezervasyon bulunamadı!"));
 
-        //  GÜVENLİK KONTROLÜ: Bu rezervasyon işlemi yapan kullanıcıya mı ait?
+
         if (!booking.getUser().getEmail().equals(userEmail)) {
             throw new IllegalStateException("Sadece kendi rezervasyonunuzu iptal edebilirsiniz!");
         }
 
-        // Zaten iptal edilmiş mi?
+
         if (booking.getStatus() == BookingStatus.CANCELED) {
             throw new IllegalStateException("Bu rezervasyon zaten iptal edilmiş!");
         }
 
-        // Tarihi geçmiş veya başlamış rezervasyon iptal edilemez!
-        // (Örn: Sadece giriş tarihinden en az 1 gün önce iptal edilebilir)
+
         if (!java.time.LocalDate.now().isBefore(booking.getCheckInDate())) {
             throw new IllegalStateException("Süresi geçmiş veya başlamış rezervasyonlar iptal edilemez!");
         }
 
-        // İptal statüsüne çek
+
         booking.setStatus(BookingStatus.CANCELED);
         bookingRepository.save(booking);
     }

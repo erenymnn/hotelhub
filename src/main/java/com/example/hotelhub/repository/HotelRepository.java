@@ -6,9 +6,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface HotelRepository extends JpaRepository<Hotel,Long> , JpaSpecificationExecutor<Hotel> {
-    // JpaSpecificationExecutor ekleyerek bu repoya "Dinamik Filtreleme" yeteneği verdik
-// Spring arka planda save, findById, findAll gibi metotları bizim için hazır edecek
+public interface HotelRepository extends JpaRepository<Hotel, Long>, JpaSpecificationExecutor<Hotel> {
 
 
 }

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -24,6 +25,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
     @Override
     public RegisterResponse register(RegisterRequest request) {
 
@@ -46,25 +48,25 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        //String yerine Record dönüyoruz
+
         return new RegisterResponse("Kullanıcı başarıyla kaydedildi!", user.getEmail());
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        // Kullanıcı kontrolü
+
         User user = userRepository.findByEmail(request.email()) // request.email() oldu
                 .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı!"));
 
-        // Şifre kontrolü
+
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new RuntimeException("Hatalı şifre!");
         }
 
-        //  Token üretimi
+
         String token = jwtService.generateToken(user.getEmail());
 
-        //Response'u gönder (Record constructor'ı ile)
+
         return new LoginResponse(token, user.getEmail());
     }
 

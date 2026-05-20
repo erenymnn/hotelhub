@@ -26,7 +26,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final HandlerExceptionResolver exceptionResolver;
 
-    // Özel Constructor (HandlerExceptionResolver için)
+
     @Autowired
     public JwtAuthenticationFilter(
             JwtService jwtService,
@@ -74,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (Exception ex) {
-            // HATA BURADA YAKALANIYOR ve bizim şık GlobalExceptionHandler'a paslanıyor!
+
             exceptionResolver.resolveException(request, response, null, ex);
         }
     }

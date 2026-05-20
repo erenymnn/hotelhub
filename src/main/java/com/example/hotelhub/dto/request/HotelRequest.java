@@ -29,8 +29,8 @@ public record HotelRequest(
         String description,
 
         @NotNull(message = "Otel puanı boş bırakılamaz!")
-        @Min(value = 1,message = "Otel puanı en az 1 olabilir!")
-        @Max(value = 5,message = "Otel puanı en fazla 5 olabilir!")
+        @Min(value = 1, message = "Otel puanı en az 1 olabilir!")
+        @Max(value = 5, message = "Otel puanı en fazla 5 olabilir!")
         Double rating  //rating otelin yıldız seviyesi
 ) {
 }

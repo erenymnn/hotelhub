@@ -10,10 +10,10 @@ import java.time.LocalDate;
 public record BookingResponse(
         Long id,
         Long roomId,
-        Long userId, // Hangi kullanıcının rezervasyonu olduğunu görebilmek için
+        Long userId,
         LocalDate checkInDate,
         LocalDate checkOutDate,
-        BigDecimal totalPrice, // Hesaplanmış toplam tutar
+        BigDecimal totalPrice,
         BookingStatus status
 ) {
 }

@@ -9,11 +9,11 @@ public record RoomResponse(
         Long id,
         String roomNumber,
         RoomType type,
-        String viewType, // Manzara dışarıya açıldı
+        String viewType,
         BigDecimal pricePerNight,
         Integer capacity,
-        Boolean hasAirConditioning, // Klima dışarıya açıldı
-        Boolean hasBalcony, // Balkon dışarıya açıldı
+        Boolean hasAirConditioning,
+        Boolean hasBalcony,
         List<String> features,
         Boolean isAvailable
 ) {

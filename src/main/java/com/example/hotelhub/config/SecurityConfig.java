@@ -14,8 +14,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity //  Metot seviyesinde yetkilendirmeyi (PreAuthorize) aktif eder
-@RequiredArgsConstructor // Bunu ekledik ki filtreyi içeri alabilsin
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter; // Bizim yazdığımız filtre
@@ -26,16 +26,16 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        // Login, Register, Hata mesajları VE Otel Arama kısımları herkese açık (serbest)
+
                         .requestMatchers("/api/auth/**", "/error", "/api/hotels/search").permitAll()
-                        // Rezervasyon yapmak, iptal etmek vb. DİĞER HER ŞEY KİLİTLİ!
+
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // Session yok, sadece Token!
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider)
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class); // Filtreyi ekledik
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

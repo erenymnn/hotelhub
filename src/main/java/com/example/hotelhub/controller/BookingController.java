@@ -21,37 +21,37 @@ public class BookingController {
     @PostMapping
     public ResponseEntity<BookingResponse> createBooking(
             @Valid @RequestBody BookingRequest request,
-            Principal principal // Spring Security, o an giriş yapmış kullanıcının bilgilerini buraya otomatik koyar!
+            Principal principal
     ) {
-        // Token'ın içinden kullanıcının email adresini (username) çekiyoruz
+
         String userEmail = principal.getName();
 
-        // Servise isteği ve email'i gönderip rezervasyonu oluşturuyoruz
+
         return new ResponseEntity<>(bookingService.createBooking(request, userEmail), HttpStatus.CREATED);
     }
-    // 1. KULLANICININ KENDİ REZERVASYONLARINI GÖRMESİ
+
     @GetMapping("/my-bookings")
     public ResponseEntity<List<BookingResponse>> getUserBookings(Principal principal) {
-        // Token'dan e-postayı alıyoruz
+
         String userEmail = principal.getName();
 
-        // Servise gönderip listeyi dönüyoruz
+
         return ResponseEntity.ok(bookingService.getUserBookings(userEmail));
     }
 
-    // 2. KULLANICININ KENDİ REZERVASYONUNU İPTAL ETMESİ
+
     @DeleteMapping("/{bookingId}")
     public ResponseEntity<String> cancelBooking(
             @PathVariable Long bookingId,
             Principal principal
     ) {
-        // Token'dan e-postayı alıyoruz
+
         String userEmail = principal.getName();
 
-        // İptal işlemini servise devrediyoruz
+
         bookingService.cancelBooking(bookingId, userEmail);
 
-        // İşlem başarılıysa mesaj dönüyoruz
+
         return ResponseEntity.ok("Rezervasyon başarıyla iptal edildi.");
     }
 }

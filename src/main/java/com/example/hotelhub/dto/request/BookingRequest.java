@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
 
-public record BookingRequest (
+public record BookingRequest(
 
         @NotNull(message = "Oda ID boş olamaz!")
         Long roomId,
@@ -19,8 +19,8 @@ public record BookingRequest (
 
         @NotNull(message = "Çıkış tarihi boş olamaz!")
         @Future(message = "Çıkış tarihi kesinlikle gelecekte bir tarih olmalıdır!")
-        @JsonFormat(pattern = "yyyy-MM-dd") //boş gelebilecegini de öğretiyoruz
+        @JsonFormat(pattern = "yyyy-MM-dd")
         LocalDate checkOutDate
 
-){
+) {
 }

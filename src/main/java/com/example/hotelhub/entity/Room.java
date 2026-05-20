@@ -13,7 +13,8 @@ import java.util.List;
 @Table(name = "rooms")
 @SQLDelete(sql = "UPDATE rooms SET is_Deleted = true WHERE id=?")
 @SQLRestriction("is_deleted = false")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Room {
@@ -26,27 +27,27 @@ public class Room {
     @Enumerated(EnumType.STRING)
     private RoomType type;
 
-    // Para birimi hassasiyeti eklendi
+
     @Column(precision = 10, scale = 2)
     private BigDecimal pricePerNight;
 
     private Integer capacity;
 
-    // Varsayılan olarak true atadık
-    private Boolean isAvailable=true;
-    private Boolean hasAirConditioning=true; //klima
-    private Boolean hasBalcony=true; //balkon
 
-    private String viewType; //deniz manzarası vs
+    private Boolean isAvailable = true;
+    private Boolean hasAirConditioning = true;
+    private Boolean hasBalcony = true;
+
+    private String viewType;
 
 
-    private boolean is_Deleted = false; // Soft delete için bu alan şart
+    private boolean is_Deleted = false;
     @ElementCollection
     @CollectionTable(name = "room_features", joinColumns = @JoinColumn(name = "room_id"))
     @Column(name = "feature")
     private List<String> features = new ArrayList<>();
 
-    // Performans için LAZY eklendi
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hotel_id")
     private Hotel hotel;

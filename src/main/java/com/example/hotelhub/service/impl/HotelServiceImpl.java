@@ -21,20 +21,20 @@ import java.util.List;
 public class HotelServiceImpl implements HotelService {
     private final HotelRepository hotelRepository;
     private final HotelMapper hotelMapper;
-    // Yöneticiyi (Manager) bulmak için UserRepository'yi enjekte ettik
+
     private final UserRepository userRepository;
 
     @Override
     public HotelResponse createHotel(HotelRequest request, String userEmail) {
-        //İşlemi yapan yöneticiyi veritabanından bul
+
         User manager = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı!"));
 
-        //  DTO'yu Entity'ye çevir
+
         Hotel hotel = hotelMapper.toEntity(request);
 
-        //  Oteli bu yöneticiye ZİMMETLE
-        hotel.setManager(manager); // Hotel entity'sindeki alan adına göre burayı ayarlayabilirsin
+
+        hotel.setManager(manager);
 
 
         Hotel savedHotel = hotelRepository.save(hotel);
@@ -43,7 +43,7 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public List<HotelResponse> getAllHotels() {
-        // Tüm otelleri çek, herbirini MapStruct'ın 'toResponse' metoduna yolla ve listele
+
         return hotelRepository.findAll()
                 .stream()
                 .map(hotelMapper::toResponse)
@@ -53,7 +53,7 @@ public class HotelServiceImpl implements HotelService {
     @Override
     public List<HotelResponse> searchHotels(HotelSearchRequest request) {
 
-        // Yazdığımız spesifikasyonu repoya verip dinamik olarak filtreleme yapıyoruz
+
         return hotelRepository.findAll(HotelSpecification.filterHotels(request))
                 .stream()
                 .map(hotelMapper::toResponse) // Gelen otelleri Response DTO'ya çeviriyoruz
@@ -62,11 +62,11 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public HotelResponse getHotelById(Long id) {
-        // Oteli bul, bulamazsan hata fırlat
+
         Hotel hotel = hotelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
 
-        // Bulunan oteli Response DTO'ya çevir
+
         return hotelMapper.toResponse(hotel);
     }
 
@@ -76,15 +76,15 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = hotelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
 
-        //  VERİ SAHİPLİĞİ KONTROLÜ
+
         if (!hotel.getManager().getEmail().equals(userEmail)) {
             throw new IllegalStateException("Bu oteli güncelleme yetkiniz yok! Sadece kendi otelinizi güncelleyebilirsiniz.");
         }
 
-        //  MapStruct metoduyla yeni verileri eski otelin üzerine yazdır
+
         hotelMapper.updateEntityFromRequest(request, hotel);
 
-        // Güncellenmiş oteli kaydet ve dön
+
         Hotel updatedHotel = hotelRepository.save(hotel);
         return hotelMapper.toResponse(updatedHotel);
     }
@@ -95,7 +95,7 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = hotelRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
 
-        // VERİ SAHİPLİĞİ KONTROLÜ
+
         if (!hotel.getManager().getEmail().equals(userEmail)) {
             throw new IllegalStateException("Bu oteli silme yetkiniz yok! Sadece kendi otelinizi silebilirsiniz.");
         }

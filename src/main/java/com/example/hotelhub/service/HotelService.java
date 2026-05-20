@@ -7,7 +7,7 @@ import com.example.hotelhub.dto.response.HotelResponse;
 import java.util.List;
 
 public interface HotelService {
-    // Güvenlik ve sahiplik kontrolü için 'String userEmail' parametreleri eklendi
+
     HotelResponse createHotel(HotelRequest request, String userEmail);
 
     List<HotelResponse> getAllHotels();
