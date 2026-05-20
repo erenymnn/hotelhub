@@ -1,6 +1,7 @@
 package com.example.hotelhub.service.impl;
 
 import com.example.hotelhub.dto.request.HotelRequest;
+import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.User;
@@ -9,6 +10,7 @@ import com.example.hotelhub.mapper.HotelMapper;
 import com.example.hotelhub.repository.HotelRepository;
 import com.example.hotelhub.repository.UserRepository;
 import com.example.hotelhub.service.HotelService;
+import com.example.hotelhub.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,16 @@ public class HotelServiceImpl implements HotelService {
         return hotelRepository.findAll()
                 .stream()
                 .map(hotelMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public List<HotelResponse> searchHotels(HotelSearchRequest request) {
+
+        // 1. Yazdığımız spesifikasyonu repoya verip dinamik olarak filtreleme yapıyoruz
+        return hotelRepository.findAll(HotelSpecification.filterHotels(request))
+                .stream()
+                .map(hotelMapper::toResponse) // Gelen otelleri Response DTO'ya çeviriyoruz
                 .toList();
     }
 
@@ -91,4 +103,6 @@ public class HotelServiceImpl implements HotelService {
         // 3. İşlem geçerliyse sil
         hotelRepository.delete(hotel);
     }
+
+
 }

@@ -1,6 +1,7 @@
 package com.example.hotelhub.controller;
 
 import com.example.hotelhub.dto.request.HotelRequest;
+import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.service.HotelService;
 import jakarta.validation.Valid;
@@ -31,6 +32,13 @@ public class HotelController {
     public ResponseEntity<HotelResponse> getHotelById(@PathVariable Long id) {
         return ResponseEntity.ok(hotelService.getHotelById(id));
     }
+//burada search normalde get ile yazılır ama url kirletmemek adına post istegi atarken body kısmına istedigin search anahtar kelimeyi yazarak hem istekler daha güvenli ve temiz body şeklinde işimiz daha kolaylaşır.
+
+    @PostMapping("/search")
+    public ResponseEntity<List<HotelResponse>> searchHotels(@RequestBody HotelSearchRequest request) {
+        return ResponseEntity.ok(hotelService.searchHotels(request));
+    }
+
 
     // 3. SADECE YETKİLİLER: Otel ekleme. İşlemi yapanın e-postasını servise gönderiyoruz ki oteli ona zimmetleyelim.
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
