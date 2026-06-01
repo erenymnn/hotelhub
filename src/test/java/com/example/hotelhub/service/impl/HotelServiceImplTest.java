@@ -1,10 +1,13 @@
 package com.example.hotelhub.service.impl;
 
+import com.example.hotelhub.dto.request.HotelRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.entity.Hotel;
+import com.example.hotelhub.entity.User;
 import com.example.hotelhub.exception.ResourceNotFoundException;
 import com.example.hotelhub.mapper.HotelMapper;
 import com.example.hotelhub.repository.HotelRepository;
+import com.example.hotelhub.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +29,9 @@ import static org.mockito.Mockito.when;
 class HotelServiceImplTest {
 
     @Mock
+    private UserRepository userRepository;
+
+    @Mock
     private HotelRepository hotelRepository;
 
     @Mock
@@ -34,9 +40,7 @@ class HotelServiceImplTest {
     @InjectMocks
     private HotelServiceImpl hotelService;
 
-    @Test
-    void createHotel() {
-    }
+
 
     @Test
     void getAllHotels() {
@@ -113,7 +117,66 @@ class HotelServiceImplTest {
     }
 
     @Test
-    void updateHotel() {
+    @DisplayName("Başarılı Senaryo: Geçerli bilgilerle yeni otel oluşturulmalı")
+    void createHotel_ShouldReturnHotelResponse_WhenUserExists() {
+        // GIVEN
+        String userEmail = "test@user.com";
+        HotelRequest request = new HotelRequest("Hilton", "Istanbul", "Besiktas", "Adres", "05554443322", "info@hilton.com", "Açıklama", 5.0);
+
+        User mockManager = new User();
+        mockManager.setEmail(userEmail);
+
+        Hotel mockHotel = new Hotel();
+        Hotel savedHotel = new Hotel();
+        savedHotel.setId(1L);
+        savedHotel.setManager(mockManager);
+
+        HotelResponse expectedResponse = new HotelResponse(1L, "Hilton", "Istanbul", "Besiktas", "Adres", "05554443322", "info@hilton.com", "Açıklama", 5.0, java.util.Collections.emptyList());
+
+        when(userRepository.findByEmail(userEmail)).thenReturn(java.util.Optional.of(mockManager));
+        when(hotelMapper.toEntity(request)).thenReturn(mockHotel);
+        when(hotelRepository.save(mockHotel)).thenReturn(savedHotel);
+        when(hotelMapper.toResponse(savedHotel)).thenReturn(expectedResponse);
+
+        // WHEN
+        HotelResponse result = hotelService.createHotel(request, userEmail);
+
+        // THEN
+        assertNotNull(result);
+        assertEquals(expectedResponse, result);
+        verify(userRepository, times(1)).findByEmail(userEmail);
+        verify(hotelRepository, times(1)).save(mockHotel);
+    }
+
+    @Test
+    @DisplayName("Güvenlik Senaryosu: Başkasının otelini güncellemeye çalışınca hata fırlatmalı")
+    void updateHotel_ShouldThrowException_WhenUserIsNotManager() {
+        // GIVEN
+        Long hotelId = 1L;
+        String requesterEmail = "hirsiz@user.com"; // Güncellemeyi deneyen kişi
+        String realOwnerEmail = "sahip@user.com"; // Otelin gerçek sahibi
+
+        HotelRequest request = new HotelRequest("Değişmiş Ad", "Istanbul", "Besiktas", "Adres", "05554443322", "info@hilton.com", "Açıklama", 5.0);
+
+        User realOwner = new User();
+        realOwner.setEmail(realOwnerEmail);
+
+        Hotel mockHotel = new Hotel();
+        mockHotel.setId(hotelId);
+        mockHotel.setManager(realOwner);
+
+        when(hotelRepository.findById(hotelId)).thenReturn(java.util.Optional.of(mockHotel));
+
+        // WHEN & THEN
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> hotelService.updateHotel(hotelId, request, requesterEmail)
+        );
+
+        assertEquals("Bu oteli güncelleme yetkiniz yok! Sadece kendi otelinizi güncelleyebilirsiniz.", exception.getMessage());
+
+        // KRİTİK: Yetkisiz işlem olduğu için save() METODU ASLA ÇAĞRILMAMALI! (Güvenlik Testi)
+        verify(hotelRepository, never()).save(any(Hotel.class));
     }
 
     @Test
