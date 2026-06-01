@@ -83,7 +83,7 @@ public class BookingServiceImpl implements BookingService {
     public void cancelBooking(Long bookingId, String userEmail) {
 
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rezervasyon bulunamadı!"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.hotel.notfound"));
 
 
         if (!booking.getUser().getEmail().equals(userEmail)) {

@@ -1,6 +1,8 @@
 package com.example.hotelhub.exception;
 
 import com.example.hotelhub.dto.response.ErrorResponse;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -16,6 +18,12 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 1. I18N Aracımızı sınıfa dahil ediyoruz
+    private final MessageSource messageSource;
+
+    public GlobalExceptionHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
@@ -77,9 +85,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(io.jsonwebtoken.ExpiredJwtException.class)
     public ResponseEntity<ErrorResponse> handleExpiredJwtException(io.jsonwebtoken.ExpiredJwtException ex) {
 
+        String message = messageSource.getMessage("error.session.expired", null, LocaleContextHolder.getLocale());
+
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
-                "Oturum süreniz dolmuş! Lütfen yeniden giriş yapınız.",
+                message,
                 HttpStatus.UNAUTHORIZED.value()
         );
 
@@ -94,9 +104,11 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ErrorResponse> handleJwtSignatureException(Exception ex) {
 
+        String message = messageSource.getMessage("error.jwt.invalid", null, LocaleContextHolder.getLocale());
+
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
-                "Geçersiz veya hatalı kimlik kartı (Token) tespit edildi!",
+               message,
                 HttpStatus.UNAUTHORIZED.value()
         );
 

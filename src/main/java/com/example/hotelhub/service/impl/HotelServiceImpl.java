@@ -77,10 +77,7 @@ public class HotelServiceImpl implements HotelService {
                 .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
 
 
-        if (!hotel.getManager().getEmail().equals(userEmail)) {
-            throw new IllegalStateException("Bu oteli güncelleme yetkiniz yok! Sadece kendi otelinizi güncelleyebilirsiniz.");
-        }
-
+        checkHotelOwnership(hotel, userEmail);
 
         hotelMapper.updateEntityFromRequest(request, hotel);
 
@@ -96,13 +93,17 @@ public class HotelServiceImpl implements HotelService {
                 .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
 
 
-        if (!hotel.getManager().getEmail().equals(userEmail)) {
-            throw new IllegalStateException("Bu oteli silme yetkiniz yok! Sadece kendi otelinizi silebilirsiniz.");
-        }
+      checkHotelOwnership(hotel,userEmail);
 
 
         hotelRepository.delete(hotel);
     }
 
+    // Sınıfın en altına eklenecek yardımcı metot
+    private void checkHotelOwnership(Hotel hotel, String userEmail) {
+        if (!hotel.getManager().getEmail().equals(userEmail)) {
+            throw new IllegalStateException("Bu işlem için yetkiniz yok! Sadece kendi otelinizi yönetebilirsiniz.");
+        }
+    }
 
 }
