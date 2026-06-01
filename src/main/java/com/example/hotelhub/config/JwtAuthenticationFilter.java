@@ -3,6 +3,7 @@ package com.example.hotelhub.config;
 import com.example.hotelhub.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
@@ -44,17 +45,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String userEmail;
+        String jwt = null;
+        String userEmail = null;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        // Gelen çerezleri  kontrol et
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                // Bizim isimlendirdiğimiz çerezi bul
+                if ("jwt_token".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // Eğer çerez yoksa veya içi boşsa diğer filtrelere geç (Burası public bir sayfa olabilir)
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        // Token bulundu İşlemlere devam et
         try {
-            jwt = authHeader.substring(7);
             userEmail = jwtService.extractEmail(jwt); // Token süresi dolmuşsa BURADA hata fırlatacak
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -74,7 +86,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (Exception ex) {
-
             exceptionResolver.resolveException(request, response, null, ex);
         }
     }
