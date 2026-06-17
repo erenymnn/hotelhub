@@ -13,17 +13,20 @@ import com.example.hotelhub.service.HotelService;
 import com.example.hotelhub.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class HotelServiceImpl implements HotelService {
     private final HotelRepository hotelRepository;
     private final HotelMapper hotelMapper;
 
     private final UserRepository userRepository;
 
+    @Transactional
     @Override
     public HotelResponse createHotel(HotelRequest request, String userEmail) {
 
@@ -70,6 +73,7 @@ public class HotelServiceImpl implements HotelService {
         return hotelMapper.toResponse(hotel);
     }
 
+    @Transactional
     @Override
     public HotelResponse updateHotel(Long id, HotelRequest request, String userEmail) {
 
@@ -86,6 +90,7 @@ public class HotelServiceImpl implements HotelService {
         return hotelMapper.toResponse(updatedHotel);
     }
 
+    @Transactional
     @Override
     public void deleteHotel(Long id, String userEmail) {
 

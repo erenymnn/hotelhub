@@ -15,6 +15,7 @@ import com.example.hotelhub.repository.UserRepository;
 import com.example.hotelhub.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.temporal.ChronoUnit;
@@ -23,13 +24,14 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingServiceImpl implements BookingService {
     private final BookingMapper bookingMapper;
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
 
-
+    @Transactional
     @Override
     public BookingResponse createBooking(BookingRequest request, String userEmail) {
 
@@ -78,7 +80,7 @@ public class BookingServiceImpl implements BookingService {
                 .map(bookingMapper::toResponse)
                 .toList();
     }
-
+    @Transactional
     @Override
     public void cancelBooking(Long bookingId, String userEmail) {
 
