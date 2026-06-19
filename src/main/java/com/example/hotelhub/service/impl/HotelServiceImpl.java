@@ -12,6 +12,8 @@ import com.example.hotelhub.repository.UserRepository;
 import com.example.hotelhub.service.HotelService;
 import com.example.hotelhub.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,22 +47,15 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
-    public List<HotelResponse> getAllHotels() {
-
-        return hotelRepository.findAll()
-                .stream()
-                .map(hotelMapper::toResponse)
-                .toList();
+    public Page<HotelResponse> getAllHotels(Pageable pageable) {
+        return hotelRepository.findAll(pageable)
+                .map(hotelMapper::toResponse); // Page içindeki her Hotel'i HotelResponse'a mapler
     }
 
     @Override
-    public List<HotelResponse> searchHotels(HotelSearchRequest request) {
-
-
-        return hotelRepository.findAll(HotelSpecification.filterHotels(request))
-                .stream()
-                .map(hotelMapper::toResponse) // Gelen otelleri Response DTO'ya çeviriyoruz
-                .toList();
+    public Page<HotelResponse> searchHotels(HotelSearchRequest request, Pageable pageable) {
+        return hotelRepository.findAll(HotelSpecification.filterHotels(request), pageable)
+                .map(hotelMapper::toResponse);
     }
 
     @Override
@@ -98,10 +93,17 @@ public class HotelServiceImpl implements HotelService {
                 .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + id));
 
 
+
       checkHotelOwnership(hotel,userEmail);
 
+        // 1. Önce otele ait tüm odaları soft delete yapıyoruz
+        if (hotel.getRooms() != null) {
+            hotel.getRooms().forEach(room -> room.set_Deleted(true));
+        }
 
-        hotelRepository.delete(hotel);
+        hotel.set_Deleted(true);
+
+        hotelRepository.save(hotel);
     }
 
     // Sınıfın en altına eklenecek yardımcı metot

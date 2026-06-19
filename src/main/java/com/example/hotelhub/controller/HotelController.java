@@ -6,6 +6,10 @@ import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.service.HotelService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,8 +27,10 @@ public class HotelController {
 
 
     @GetMapping
-    public ResponseEntity<List<HotelResponse>> getAllHotels() {
-        return ResponseEntity.ok(hotelService.getAllHotels());
+    public ResponseEntity<Page<HotelResponse>> getAllHotels(
+            @PageableDefault(size = 10, page = 0) Pageable pageable
+    ) {
+        return ResponseEntity.ok(hotelService.getAllHotels(pageable));
     }
 
 
@@ -35,10 +41,17 @@ public class HotelController {
 //burada search normalde get ile yazılır ama url kirletmemek adına post istegi atarken body kısmına istedigin search anahtar kelimeyi yazarak hem istekler daha güvenli ve temiz body şeklinde işimiz daha kolaylaşır.
 
     @PostMapping("/search")
-    public ResponseEntity<List<HotelResponse>> searchHotels(@RequestBody HotelSearchRequest request) {
-        return ResponseEntity.ok(hotelService.searchHotels(request));
-    }
+    public ResponseEntity<Page<HotelResponse>> searchHotels(@RequestBody HotelSearchRequest request)
+     {
 
+         // Eğer kullanıcı page veya size göndermediyse varsayılan değerleri set ediyoruz
+         int pageNumber = (request.page() != null) ? request.page() : 0;
+         int pageSize = (request.size() != null) ? request.size() : 10;
+
+         Pageable pageable = PageRequest.of(pageNumber, pageSize);
+
+         return ResponseEntity.ok(hotelService.searchHotels(request, pageable));
+    }
 
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @PostMapping
