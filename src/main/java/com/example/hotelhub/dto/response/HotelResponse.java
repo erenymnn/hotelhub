@@ -1,5 +1,6 @@
 package com.example.hotelhub.dto.response;
 
+import java.io.Serializable;
 import java.util.List;
 
 public record HotelResponse(

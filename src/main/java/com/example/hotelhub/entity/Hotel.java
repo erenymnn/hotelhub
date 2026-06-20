@@ -11,7 +11,7 @@ import java.util.List;
 @Entity
 @Table(name = "hotels")
 @SQLDelete(sql = "UPDATE hotels SET is_Deleted = true WHERE id=?")
-@SQLRestriction("is_deleted = false")
+@SQLRestriction("is_deleted = false") // veritabanından otel listelerken hibernate arkada otomatik olurak sonuna where is _deleted false ekler ki boylece silinmiş odalar uygulamaya gelmez
 @Getter
 @Setter
 @NoArgsConstructor

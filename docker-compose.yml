@@ -11,9 +11,33 @@ services:
       POSTGRES_DB: hotelHub
     ports:
       - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - hotelhub-network
 
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: hotelhub_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    networks:
+      - hotelhub-network
+
+  # EKSİK OLAN REDIS SERVİSİNİ BURAYA EKLEDİM Eren!
+  redis:
+    image: redis:7-alpine
+    container_name: hotelhub-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - hotelhub-network
 
   hotelhub-app:
     build: .
@@ -21,17 +45,25 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres-db                 #
+      - postgres-db
+      - rabbitmq  # Tavşanı da bağımlılıklara ekledik ki uygulama ondan önce açılmasın
+      - redis
     environment:
-
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-db:5432/hotelHub
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 1234
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
     networks:
       - hotelhub-network
-
 
 networks:
   hotelhub-network:
     driver: bridge
+
+# Yukarıda kullandığımız kalıcı veri alanlarını Docker'a kaydettik
+volumes:
+  postgres_data:
+  redis_data: # Buradaki eksik eşleşmeyi de düzelttim

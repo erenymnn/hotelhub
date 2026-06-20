@@ -109,6 +109,7 @@ public class RoomServiceImpl implements RoomService {
         }
 
 
-        roomRepository.delete(room);
+        room.set_Deleted(true); // Manuel soft delete
+        roomRepository.save(room);
     }
 }

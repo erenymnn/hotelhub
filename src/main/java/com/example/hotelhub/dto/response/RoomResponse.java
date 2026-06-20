@@ -2,6 +2,7 @@ package com.example.hotelhub.dto.response;
 
 import com.example.hotelhub.entity.enums.RoomType;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
