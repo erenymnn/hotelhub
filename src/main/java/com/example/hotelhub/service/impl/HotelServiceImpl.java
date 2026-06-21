@@ -1,13 +1,15 @@
 package com.example.hotelhub.service.impl;
 
+import com.example.hotelhub.config.RabbitMQConfig;
 import com.example.hotelhub.dto.request.HotelRequest;
 import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.User;
+import com.example.hotelhub.event.HotelSyncEvent;
 import com.example.hotelhub.exception.ResourceNotFoundException;
 import com.example.hotelhub.mapper.HotelMapper;
-import com.example.hotelhub.messaging.producer.BookingProducer; // RabbitMQ Producer Import Edildi
+import com.example.hotelhub.messaging.producer.BookingProducer;
 
 import com.example.hotelhub.repository.HotelRepository;
 import com.example.hotelhub.repository.UserRepository;
@@ -16,12 +18,12 @@ import com.example.hotelhub.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor // Lombok bizim yerimize bookingProducer'ı otomatik enjekte edecek
@@ -31,6 +33,8 @@ public class HotelServiceImpl implements HotelService {
     private final HotelMapper hotelMapper;
     private final UserRepository userRepository;
     private final BookingProducer bookingProducer; // RabbitMQ bağımlılığı eklendi
+
+    private final RabbitTemplate rabbitTemplate;
 
     // Kurumsal log nesnemiz
     private static final Logger log = LoggerFactory.getLogger(HotelServiceImpl.class);
@@ -45,6 +49,26 @@ public class HotelServiceImpl implements HotelService {
         hotel.setManager(manager);
 
         Hotel savedHotel = hotelRepository.save(hotel);
+
+        HotelSyncEvent syncEvent = new HotelSyncEvent(
+                savedHotel.getId(),
+                savedHotel.getName(),
+                savedHotel.getDescription(),
+                savedHotel.getCity(),
+                savedHotel.getDistrict(),
+                savedHotel.getRating()
+
+        );
+
+        // RabbitMQ mesajı fırlatıyoruz
+        // Bu sayede kullanıcı otel ekleye bastığında Elasticsearch'ün yazmasını beklemez, anında cevap alır.
+        rabbitTemplate.convertAndSend(
+                RabbitMQConfig.HOTEL_EXCHANGE,
+                RabbitMQConfig.HOTEL_SYNC_ROUTING_KEY,
+                syncEvent
+        );
+
+
         return hotelMapper.toResponse(savedHotel);
     }
 
@@ -56,18 +80,18 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public Page<HotelResponse> searchHotels(HotelSearchRequest request, Pageable pageable) {
-        // 1. Kurumsal Loglama
+
         log.info("Hotel search triggered for city: {} with page: {}", request.city(), pageable.getPageNumber());
 
         try {
-            // 2. ASENKRON SİHİR: Arama anında kuyruğa mesajı fırlatıyoruz
+
             bookingProducer.sendBookingNotification("User searched for city: " + request.city() + " on page: " + pageable.getPageNumber());
 
-            // 3. Veritabanı Sorgusu
+
             return hotelRepository.findAll(HotelSpecification.filterHotels(request), pageable)
                     .map(hotelMapper::toResponse);
         } catch (Exception e) {
-            // Bir hata oluşursa ERROR seviyesinde logluyoruz
+
             log.error("Error occurred while searching hotels for city: {}", request.city(), e);
             throw e;
         }
