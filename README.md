@@ -20,7 +20,8 @@ HotelHub is a robust, production-ready backend API designed for hotel reservatio
 ## 🛠️ Tech Stack
 
 * **Core:** Java 21, Spring Boot 4.0.5
-* **Data Access:** Spring Data JPA, Hibernate, PostgreSQL
+* **Data Access:** Spring Data JPA, Hibernate, PostgreSQL,Elasticsearch
+* **Messaging:** RabbitMQ
 * **Security:** Spring Security, JWT (JSON Web Tokens)
 * **Tooling:** MapStruct, Lombok, Gradle
 * **DevOps:** Docker, Docker Compose
