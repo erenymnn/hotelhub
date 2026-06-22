@@ -26,29 +26,29 @@ import java.util.Map;
 public class AuthController {
     private final AuthService authService;
     private final MessageSource messageSource; // I18N içeri aktarıyoruz
+
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
+
     // Metot parametrelerine HttpServletResponse ekledik
     @PostMapping("/Login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResponse loginResponse = authService.login(request);
 
-        // 1. Kilitli Çerezi (Cookie) Oluşturuyoruz
-        // Not:Eğer LoginResponse bir record ise loginResponse.token(), normal class ise loginResponse.getToken() yazmalısın.
+
         Cookie cookie = new Cookie("jwt_token", loginResponse.token());
 
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(24 * 60 * 60); // Çerez süresi: 1 Gün (Saniye cinsinden)
 
-        // cookie.setSecure(true); ayarı sadece HTTPS'te çalışır.
 
         //  Çerezi response ekliyoruz
         response.addCookie(cookie);
 
-        // LocaleContextHolder.getLocale() -> O anki kullanıcının (Postman'in) dilini otomatik yakalar
+
         String successMessage = messageSource.getMessage("auth.login.success", null, LocaleContextHolder.getLocale());
         return ResponseEntity.ok(Map.of(
                 "message", successMessage,

@@ -35,7 +35,7 @@ public class HotelSyncConsumer {
 
             hotelElasticRepository.save(document);
 
-            log.info("✅ [Consumer] Otel başarıyla Elasticsearch'e yazıldı! ID: {}", document.getId());
+            log.info(" [Consumer] Otel başarıyla Elasticsearch'e yazıldı! ID: {}", document.getId());
 
         } catch (Exception e) {
             log.error(" [Consumer] Elasticsearch'e yazarken hata fırlatıldı! Hata detayı: ", e);

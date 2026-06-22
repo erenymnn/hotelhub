@@ -55,6 +55,7 @@ public class RabbitMQConfig {
     public Binding hotelSyncBinding(Queue hotelSyncQueue, DirectExchange hotelExchange) {
         return BindingBuilder.bind(hotelSyncQueue).to(hotelExchange).with(HOTEL_SYNC_ROUTING_KEY);
     }
+
     @Bean
     public MessageConverter jsonMessageConverter() {
         return new ContentTypeDelegatingMessageConverter();

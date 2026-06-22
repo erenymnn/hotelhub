@@ -24,13 +24,13 @@ public class RoomController {
 
     // HERKESE AÇIK
     @GetMapping("/{id}")
-    public ResponseEntity<RoomResponse> getRoomById(@PathVariable Long id){
+    public ResponseEntity<RoomResponse> getRoomById(@PathVariable Long id) {
         return ResponseEntity.ok(roomService.getRoomById(id));
     }
 
     // HERKESE AÇIK
     @GetMapping("/hotel/{hotelId}")
-    public ResponseEntity<List<RoomResponse>> getRoomsByHotelId(@PathVariable Long hotelId){
+    public ResponseEntity<List<RoomResponse>> getRoomsByHotelId(@PathVariable Long hotelId) {
         return ResponseEntity.ok(roomService.getRoomsByHotelId(hotelId));
     }
 

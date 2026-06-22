@@ -80,6 +80,7 @@ public class BookingServiceImpl implements BookingService {
                 .map(bookingMapper::toResponse)
                 .toList();
     }
+
     @Transactional
     @Override
     public void cancelBooking(Long bookingId, String userEmail) {

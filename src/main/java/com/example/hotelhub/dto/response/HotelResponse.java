@@ -1,6 +1,5 @@
 package com.example.hotelhub.dto.response;
 
-import java.io.Serializable;
 import java.util.List;
 
 public record HotelResponse(
@@ -13,7 +12,7 @@ public record HotelResponse(
         String number,
         String email,
         String description,
-        Double rating ,
+        Double rating,
         List<RoomResponse> rooms
 ) {
 }
