@@ -10,22 +10,22 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(indexName = "hotel_index", createIndex = false)
+@Document(indexName = "hotel_index_v2", createIndex = false)
 public class HotelDocument {
 
     @Id
     private String id;
 
-    @Field(type = FieldType.Text, analyzer = "standard")
+    @Field(type = FieldType.Text)
     private String name;
 
-    @Field(type = FieldType.Text, analyzer = "standard")
+    @Field(type = FieldType.Text)
     private String description;
 
-    @Field(type = FieldType.Keyword)
+    @Field(type = FieldType.Text, analyzer = "turkish")
     private String city;
 
-    @Field(type = FieldType.Keyword)
+    @Field(type = FieldType.Text, analyzer = "turkish")
     private String district;
 
     @Field(type = FieldType.Double)

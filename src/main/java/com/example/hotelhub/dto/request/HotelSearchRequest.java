@@ -5,12 +5,13 @@ import java.time.LocalDate;
 
 public record HotelSearchRequest(
         String city,
+        String description,
         String district,  //İlçe (Örn: Kaş)
         LocalDate checkInDate,  //giriş tarihi
         LocalDate checkOutDate, // ''
         Double minRating,  //min otel puanı
         BigDecimal maxPrice , //max gecelik fiyatı vs.
-        // Sayfalama alanlarını buraya ekledik (İsteğe bağlı/Optional olabilirler)
+
         Integer page,
         Integer size
 ) {

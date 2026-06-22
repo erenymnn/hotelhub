@@ -1,8 +1,8 @@
 package com.example.hotelhub.messaging.consumer;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.example.hotelhub.event.HotelSyncEvent;
 import com.example.hotelhub.elasticsearch.HotelDocument;
+import com.example.hotelhub.elasticsearch.HotelElasticRepository; // 🔥 Senin reponu bağladık
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -14,14 +14,16 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class HotelSyncConsumer {
 
-    private final ElasticsearchClient elasticsearchClient;
 
-    @Async
-    @EventListener
+    private final HotelElasticRepository hotelElasticRepository;
+
+    @Async // Ana thread'i bloklamadan arka planda asenkron çalıştırır
+    @EventListener // Spring Event Bus'a düşen HotelSyncEvent'leri otomatik yakalar
     public void consumeHotelSyncEvent(HotelSyncEvent event) {
         log.info(" Spring Event Bus'tan yeni otel senkronizasyon eventi alındı! Otel ID: {}", event.id());
 
         try {
+            // Alanların hepsi eksiksiz map ediliyor
             HotelDocument document = HotelDocument.builder()
                     .id(event.id().toString())
                     .name(event.name())
@@ -31,16 +33,12 @@ public class HotelSyncConsumer {
                     .rating(event.rating())
                     .build();
 
-            //  Doğrudan istemci üzerinden Elasticsearch "hotel_index" indeksine veriyi asenkron yazıyoruz
-            elasticsearchClient.index(i -> i
-                    .index("hotel_index")
-                    .id(document.getId())
-                    .document(document)
-            );
-            log.info(" Otel başarıyla Elasticsearch üzerinde indekslendi. ID: {}", document.getId());
+            hotelElasticRepository.save(document);
+
+            log.info("✅ [Consumer] Otel başarıyla Elasticsearch'e yazıldı! ID: {}", document.getId());
 
         } catch (Exception e) {
-            log.error(" Elasticsearch senkronizasyonu sırasında hata oluştu!", e);
+            log.error(" [Consumer] Elasticsearch'e yazarken hata fırlatıldı! Hata detayı: ", e);
         }
     }
 }

@@ -40,18 +40,6 @@ public class HotelController {
     }
 //burada search normalde get ile yazılır ama url kirletmemek adına post istegi atarken body kısmına istedigin search anahtar kelimeyi yazarak hem istekler daha güvenli ve temiz body şeklinde işimiz daha kolaylaşır.
 
-    @PostMapping("/search")
-    public ResponseEntity<Page<HotelResponse>> searchHotels(@RequestBody HotelSearchRequest request)
-     {
-
-         // Eğer kullanıcı page veya size göndermediyse varsayılan değerleri set ediyoruz
-         int pageNumber = (request.page() != null) ? request.page() : 0;
-         int pageSize = (request.size() != null) ? request.size() : 10;
-
-         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-
-         return ResponseEntity.ok(hotelService.searchHotels(request, pageable));
-    }
 
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     @PostMapping

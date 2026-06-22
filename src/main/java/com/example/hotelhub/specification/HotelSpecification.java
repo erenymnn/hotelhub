@@ -36,6 +36,22 @@ public class HotelSpecification {
                 ));
             }
 
+
+            if (request.description() != null && !request.description().isBlank()) {
+                String searchPattern = "%" + request.description().toUpperCase(Locale.forLanguageTag("tr-TR")) + "%";
+
+                Predicate namePredicate = criteriaBuilder.like(
+                        criteriaBuilder.function("UPPER", String.class, root.get("name")), searchPattern
+                );
+
+                Predicate descPredicate = criteriaBuilder.like(
+                        criteriaBuilder.function("UPPER", String.class, root.get("description")), searchPattern
+                );
+
+                // İkisinden birinde geçmesi yeterli (OR bağlacı)
+                predicates.add(criteriaBuilder.or(namePredicate, descPredicate));
+            }
+
             if (request.minRating() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(
                         root.get("rating"),

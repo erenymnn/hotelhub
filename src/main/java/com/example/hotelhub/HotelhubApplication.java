@@ -8,6 +8,7 @@ import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
+@EnableElasticsearchRepositories(basePackages = "com.example.hotelhub.elasticsearch")
 // Spring'e "Sayfalama verilerini güvenli ve sabit bir DTO yapısına çevir" diyoruz:
 @EnableSpringDataWebSupport(pageSerializationMode = EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO)
 @EnableAsync

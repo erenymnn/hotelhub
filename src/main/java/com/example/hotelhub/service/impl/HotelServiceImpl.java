@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ public class HotelServiceImpl implements HotelService {
     private final HotelMapper hotelMapper;
     private final UserRepository userRepository;
     private final BookingProducer bookingProducer; // RabbitMQ bağımlılığı eklendi
-
+    private final ApplicationEventPublisher eventPublisher;
     private final RabbitTemplate rabbitTemplate;
 
     // Kurumsal log nesnemiz
@@ -62,11 +63,7 @@ public class HotelServiceImpl implements HotelService {
 
         // RabbitMQ mesajı fırlatıyoruz
         // Bu sayede kullanıcı otel ekleye bastığında Elasticsearch'ün yazmasını beklemez, anında cevap alır.
-        rabbitTemplate.convertAndSend(
-                RabbitMQConfig.HOTEL_EXCHANGE,
-                RabbitMQConfig.HOTEL_SYNC_ROUTING_KEY,
-                syncEvent
-        );
+        eventPublisher.publishEvent(syncEvent);
 
 
         return hotelMapper.toResponse(savedHotel);

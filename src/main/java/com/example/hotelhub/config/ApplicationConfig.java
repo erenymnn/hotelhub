@@ -27,9 +27,10 @@ public class ApplicationConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        // boş constructor'ı kabul etmiyor doğrudan constructor içine servisi veriyoruz
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService());
 
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
+        authProvider.setUserDetailsService(userDetailsService());
         // Şifre kodlayıcıyı yine set ediyoruz
         authProvider.setPasswordEncoder(passwordEncoder());
 
