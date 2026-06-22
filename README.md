@@ -41,4 +41,5 @@ You don't need to install Java, PostgreSQL, or Gradle on your local machine to r
    docker compose up -d
 
 🚀 Accessing API Documentation
+
 Once the application is up and running, you can explore and test all available endpoints through the Swagger UI interface: http://localhost:8080/swagger-ui/index.html
