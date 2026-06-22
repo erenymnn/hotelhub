@@ -4,6 +4,7 @@ import com.example.hotelhub.dto.request.HotelRequest;
 import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.service.HotelService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/hotels")
 @RequiredArgsConstructor
+@Tag(name = "Hotel Controller", description = "Otel yönetimi (CRUD) işlemleri")
 public class HotelController {
 
     private final HotelService hotelService;

@@ -5,6 +5,7 @@ import com.example.hotelhub.dto.request.RegisterRequest;
 import com.example.hotelhub.dto.response.LoginResponse;
 import com.example.hotelhub.dto.response.RegisterResponse;
 import com.example.hotelhub.service.AuthService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(name = "Auth Controller", description = "Kullanıcı kayıt ve giriş (JWT) işlemleri")
 public class AuthController {
     private final AuthService authService;
     private final MessageSource messageSource; // I18N içeri aktarıyoruz

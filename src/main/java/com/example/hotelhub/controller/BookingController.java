@@ -3,6 +3,7 @@ package com.example.hotelhub.controller;
 import com.example.hotelhub.dto.request.BookingRequest;
 import com.example.hotelhub.dto.response.BookingResponse;
 import com.example.hotelhub.service.BookingService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/bookings")
 @RequiredArgsConstructor
+@Tag(name = "Booking Controller", description = "Rezervasyon oluşturma ve sorgulama işlemleri")
 public class BookingController {
     private final BookingService bookingService;
 
