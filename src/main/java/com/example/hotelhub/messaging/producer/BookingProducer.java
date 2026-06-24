@@ -9,7 +9,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
-@RequiredArgsConstructor // Bunu kullanmak constructor yazmaktan daha temiz
+@RequiredArgsConstructor
 public class BookingProducer {
 
     private static final Logger log = LoggerFactory.getLogger(BookingProducer.class);

@@ -17,7 +17,7 @@ public record RoomRequest(
         RoomType type,
 
         @NotBlank(message = "Manzara tipi boş bırakılamaz!")
-        String viewType, // Validasyon eklendi
+        String viewType,
 
         @NotNull(message = "Fiyat boş olamaz!")
         @Positive(message = "Fiyat sıfırdan büyük olmalıdır!")
@@ -27,7 +27,7 @@ public record RoomRequest(
         @Min(value = 1, message = "Kapasite en az 1 kişi olmalıdır!")
         Integer capacity,
 
-        // Entity'deki boolean'lar buraya da eklendi
+
         Boolean hasAirConditioning,
         Boolean hasBalcony,
 

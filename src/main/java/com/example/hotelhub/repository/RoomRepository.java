@@ -12,7 +12,6 @@ import java.util.List;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {
 
-    List<Room> findByHotelId(Long hotelId);
 
     @Modifying
     @Query("update Room r set r.deleted = true where r.hotel.id = :hotelId")

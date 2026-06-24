@@ -22,7 +22,7 @@ public class HotelSpecification {
 
             List<Predicate> predicates = new ArrayList<>();
 
-            // 1. Şehir ve İlçe Filtreleri (Case-Insensitive)
+
             if (request.city() != null && !request.city().isBlank()) {
                 predicates.add(criteriaBuilder.like(
                         criteriaBuilder.function("UPPER", String.class, root.get("city")),
@@ -37,7 +37,7 @@ public class HotelSpecification {
                 ));
             }
 
-            // 2. İsim ve Açıklama Filtreleri
+
             if (request.description() != null && !request.description().isBlank()) {
                 String searchPattern = "%" + request.description().toUpperCase(Locale.forLanguageTag("tr-TR")) + "%";
                 Predicate namePredicate = criteriaBuilder.like(criteriaBuilder.function("UPPER", String.class, root.get("name")), searchPattern);
@@ -45,24 +45,24 @@ public class HotelSpecification {
                 predicates.add(criteriaBuilder.or(namePredicate, descPredicate));
             }
 
-            // 3. Puan Filtresi
+
             if (request.minRating() != null) {
                 predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("rating"), request.minRating()));
             }
 
-            // 4. Oda Odaklı Filtreler (Join Yönetimi)
+
             Join<Hotel, Room> roomsJoin = null;
             if (request.maxPrice() != null || (request.checkInDate() != null && request.checkOutDate() != null)) {
                 roomsJoin = root.join("rooms");
                 query.distinct(true); // Aynı otelin mükerrer gelmesini engelle
             }
 
-            // Fiyat Filtresi
+
             if (request.maxPrice() != null && roomsJoin != null) {
                 predicates.add(criteriaBuilder.lessThanOrEqualTo(roomsJoin.get("pricePerNight"), request.maxPrice()));
             }
 
-            // Tarih Çakışma Filtresi
+
             if (request.checkInDate() != null && request.checkOutDate() != null && roomsJoin != null) {
                 Subquery<Long> busyRoomsQuery = query.subquery(Long.class);
                 Root<Booking> bookingRoot = busyRoomsQuery.from(Booking.class);
@@ -77,7 +77,7 @@ public class HotelSpecification {
                 predicates.add(criteriaBuilder.not(roomsJoin.get("id").in(busyRoomsQuery)));
             }
 
-            // Soft Delete Kontrolü
+
             predicates.add(criteriaBuilder.isFalse(root.get("deleted")));
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));

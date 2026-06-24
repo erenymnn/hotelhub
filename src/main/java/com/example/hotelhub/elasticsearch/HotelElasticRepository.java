@@ -18,6 +18,5 @@ public interface HotelElasticRepository extends ElasticsearchRepository<HotelDoc
             "}")
     Page<HotelDocument> searchAcrossAllFields(String query, Pageable pageable);
 
-    // En yüksek puanlıları getirmek için özel bir sorguya ihtiyacın yok,
-    // Spring Data'nın Pageable'ına Sort ekleyerek bunu serviste halledeceğiz.
+
 }

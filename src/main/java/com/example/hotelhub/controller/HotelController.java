@@ -25,7 +25,7 @@ public class HotelController {
 
     private final HotelService hotelService;
 
-    // 1. Genel Liste (Halka açık)
+
     @GetMapping
     public ResponseEntity<Page<HotelResponse>> getAllHotels(
             @PageableDefault(size = 10, page = 0) Pageable pageable
@@ -33,7 +33,7 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.getAllHotels(pageable));
     }
 
-    // 2. Arama (Halka açık - POST ile karmaşık filtreleme)
+
     @PostMapping("/search")
     public ResponseEntity<Page<HotelResponse>> searchHotels(
             @RequestBody HotelSearchRequest request,
@@ -42,7 +42,6 @@ public class HotelController {
         return ResponseEntity.ok(hotelService.searchHotels(request, pageable));
     }
 
-    // 3. Manager'ın kendi otelleri (Güvenli)
     @GetMapping("/my-hotels")
     @PreAuthorize("hasAuthority('MANAGER')")
     public ResponseEntity<Page<HotelResponse>> getMyHotels(

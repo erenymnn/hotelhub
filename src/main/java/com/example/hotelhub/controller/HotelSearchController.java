@@ -23,7 +23,7 @@ public class HotelSearchController {
         return ResponseEntity.ok(hotelSearchService.searchInElasticsearch(request));
     }
 
-    // YENİ EKLENEN ENDPOINT: En iyi otelleri listeleyen metot
+    //En iyi otelleri listeleyen metot
     @GetMapping("/top-rated")
     public ResponseEntity<Page<HotelDocument>> getTopRatedHotels(
             @RequestParam(defaultValue = "10") int size

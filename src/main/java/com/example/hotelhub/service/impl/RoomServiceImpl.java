@@ -49,7 +49,7 @@ public class RoomServiceImpl implements RoomService {
         if (!hotelRepository.existsById(hotelId)) {
             throw new ResourceNotFoundException("Otel bulunamadı! ID: " + hotelId);
         }
-        return roomRepository.findByHotelId(hotelId)
+        return roomRepository.findAvailableRoomsByHotelId(hotelId)
                 .stream()
                 .map(roomMapper::toResponse)
                 .toList();
@@ -92,7 +92,7 @@ public class RoomServiceImpl implements RoomService {
         roomRepository.save(room);
     }
 
-    // --- Yardımcı Metotlar ---
+    //  Yardımcı Metotlar
     private Hotel findHotelById(Long hotelId) {
         return hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Otel bulunamadı! ID: " + hotelId));

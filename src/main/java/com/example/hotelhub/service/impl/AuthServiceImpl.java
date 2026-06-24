@@ -64,12 +64,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Set<Role> resolveRoles(Set<String> requestedRoles) {
-        // 1. Rol gelmediyse varsayılan olarak CUSTOMER ver
+
         if (requestedRoles == null || requestedRoles.isEmpty()) {
             return EnumSet.of(Role.CUSTOMER);
         }
 
-        // 2. Rolleri işlerken ADMIN veya bilmediğimiz bir rol gelirse engelle
+
         return requestedRoles.stream()
                 .map(String::toUpperCase)
                 .filter(roleStr -> {

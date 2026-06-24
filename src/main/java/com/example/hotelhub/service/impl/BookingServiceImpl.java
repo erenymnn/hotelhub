@@ -6,9 +6,11 @@ import com.example.hotelhub.entity.Booking;
 import com.example.hotelhub.entity.Room;
 import com.example.hotelhub.entity.User;
 import com.example.hotelhub.entity.enums.BookingStatus;
+import com.example.hotelhub.event.BookingEvent;
 import com.example.hotelhub.exception.ResourceNotFoundException;
 import com.example.hotelhub.exception.RoomAlreadyBookedException;
 import com.example.hotelhub.mapper.BookingMapper;
+import com.example.hotelhub.messaging.producer.BookingProducer;
 import com.example.hotelhub.repository.BookingRepository;
 import com.example.hotelhub.repository.RoomRepository;
 import com.example.hotelhub.repository.UserRepository;
@@ -32,6 +34,7 @@ import java.util.List;
 public class BookingServiceImpl implements BookingService {
 
     private final BookingMapper bookingMapper;
+    private final BookingProducer bookingProducer;
     private final BookingRepository bookingRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
@@ -58,11 +61,23 @@ public class BookingServiceImpl implements BookingService {
         booking.setUser(user);
         booking.setTotalPrice(totalPrice);
         booking.setStatus(BookingStatus.CONFIRMED);
-
         booking.setHotelName(room.getHotel().getName());
-        return bookingMapper.toResponse(bookingRepository.save(booking));
-    }
 
+
+        Booking savedBooking = bookingRepository.save(booking);
+
+        //Event fırlat (Asenkron bildirim için)
+        BookingEvent event = new BookingEvent(
+                savedBooking.getId(),
+                user.getEmail(),
+                savedBooking.getHotelName(),
+                "Rezervasyonunuz başarıyla onaylandı!"
+        );
+        bookingProducer.sendBookingNotification(event);
+
+
+        return bookingMapper.toResponse(savedBooking);
+    }
     @Transactional
     @Override
     public void updateBookingStatus(Long id, BookingStatus status) {

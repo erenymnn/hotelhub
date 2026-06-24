@@ -63,7 +63,7 @@ public class RoomController {
         return ResponseEntity.noContent().build();
     }
 
-    // YENİ EKLENEN METOT: Müsaitlik durumu güncelleme
+    //Müsaitlik durumu güncelleme
     @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PatchMapping("/{id}/availability")
     public ResponseEntity<Void> setRoomAvailability(

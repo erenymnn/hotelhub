@@ -19,7 +19,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1. I18N Aracımızı sınıfa dahil ediyoruz
+
     private final MessageSource messageSource;
 
     public GlobalExceptionHandler(MessageSource messageSource) {

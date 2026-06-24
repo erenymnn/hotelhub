@@ -45,7 +45,7 @@ public class HotelSearchServiceImpl implements HotelSearchService {
         return hotelElasticRepository.findAll(pageable);
     }
 
-    // --- Yardımcı Metotlar ---
+    // Yardımcı Metotlar
     private int resolvePage(Integer page) { return (page == null || page < 0) ? DEFAULT_PAGE : page; }
     private int resolveSize(Integer size) { return (size == null || size < 1) ? DEFAULT_SIZE : Math.min(size, MAX_SIZE); }
     private boolean hasSearchText(HotelSearchRequest request) {

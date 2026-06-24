@@ -62,7 +62,7 @@ public class JwtServiceImpl implements JwtService {
         return extractClaim(token, Claims::getExpiration).before(new Date());
     }
 
-    // Modern parser kullanımı:
+    // Modern parser kullanımı
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = Jwts.parserBuilder() // Eğer 0.12+ kullanıyorsan parser().verifyWith(getSignInKey()).build() kullan
                 .setSigningKey(getSignInKey())
