@@ -43,12 +43,15 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-
+        if (roles == null || roles.isEmpty()) {
+            return java.util.List.of();
+        }
+        // Sadece role.name() dön, ROLE_ öneki ekleme.
+        // Böylece SecurityConfig'deki hasAuthority('MANAGER') ile tam eşleşir.
         return roles.stream()
-                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.name()))
+                .map(role -> new SimpleGrantedAuthority(role.name()))
                 .collect(Collectors.toList());
     }
-
     @Override
     public String getUsername() {
         return email;

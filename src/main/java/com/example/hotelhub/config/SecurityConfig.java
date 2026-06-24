@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -26,7 +27,7 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-
+                        // 1. PUBLIC (Herkese Açık)
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
@@ -34,6 +35,15 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
 
+                        // Otelleri, odaları ve aramayı herkes görebilir/kullanabilir
+                        .requestMatchers(HttpMethod.GET, "/api/hotels/**", "/api/rooms/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/search/**").permitAll()
+
+                        // 2. PRIVATE (Sadece Yetkililer)
+                        // Booking işlemleri için en azından giriş yapmış olmak şart
+                        .requestMatchers("/api/bookings/**").authenticated()
+
+                        // Geri kalan her yer için en azından login şart
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session

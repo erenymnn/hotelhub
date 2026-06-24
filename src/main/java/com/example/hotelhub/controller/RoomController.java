@@ -22,50 +22,56 @@ public class RoomController {
 
     private final RoomService roomService;
 
-    // HERKESE AÇIK
     @GetMapping("/{id}")
     public ResponseEntity<RoomResponse> getRoomById(@PathVariable Long id) {
         return ResponseEntity.ok(roomService.getRoomById(id));
     }
 
-    // HERKESE AÇIK
     @GetMapping("/hotel/{hotelId}")
     public ResponseEntity<List<RoomResponse>> getRoomsByHotelId(@PathVariable Long hotelId) {
         return ResponseEntity.ok(roomService.getRoomsByHotelId(hotelId));
     }
 
-    // SADECE YETKİLİLER
-    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    // hasAnyRole yerine hasAnyAuthority kullanıyoruz (Güvenlik tutarlılığı için)
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PostMapping
     public ResponseEntity<RoomResponse> addRoom(
             @Valid @RequestBody RoomRequest request,
             Principal principal
     ) {
-        String userEmail = principal.getName();
-        return new ResponseEntity<>(roomService.addRoomToHotel(request, userEmail), HttpStatus.CREATED);
+        // principal.getName() direkt metodun içine gönderiyoruz, daha temiz
+        return new ResponseEntity<>(roomService.addRoomToHotel(request, principal.getName()), HttpStatus.CREATED);
     }
 
-    // SADECE YETKİLİLER
-    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<RoomResponse> updateRoom(
             @PathVariable Long id,
             @Valid @RequestBody RoomRequest request,
             Principal principal
     ) {
-        String userEmail = principal.getName();
-        return ResponseEntity.ok(roomService.updateRoom(id, request, userEmail));
+        return ResponseEntity.ok(roomService.updateRoom(id, request, principal.getName()));
     }
 
-    // SADECE YETKİLİLER
-    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRoom(
             @PathVariable Long id,
             Principal principal
     ) {
-        String userEmail = principal.getName();
-        roomService.deleteRoom(id, userEmail);
+        roomService.deleteRoom(id, principal.getName());
         return ResponseEntity.noContent().build();
+    }
+
+    // YENİ EKLENEN METOT: Müsaitlik durumu güncelleme
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
+    @PatchMapping("/{id}/availability")
+    public ResponseEntity<Void> setRoomAvailability(
+            @PathVariable Long id,
+            @RequestParam boolean isAvailable,
+            Principal principal
+    ) {
+        roomService.setRoomAvailability(id, isAvailable, principal.getName());
+        return ResponseEntity.ok().build();
     }
 }

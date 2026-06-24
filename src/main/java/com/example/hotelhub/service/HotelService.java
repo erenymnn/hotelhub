@@ -21,6 +21,6 @@ public interface HotelService {
 
     void deleteHotel(Long id, String userEmail);
 
-
+    Page<HotelResponse> getMyHotels(String userEmail, Pageable pageable);
 
 }

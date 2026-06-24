@@ -21,4 +21,6 @@ public interface RoomService {
 
 
     void deleteRoom(Long id, String userEmail);
+
+    void setRoomAvailability(Long id, boolean isAvailable, String userEmail);
 }

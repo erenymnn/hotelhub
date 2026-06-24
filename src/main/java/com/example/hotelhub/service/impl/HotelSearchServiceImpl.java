@@ -8,41 +8,51 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class HotelSearchServiceImpl implements HotelSearchService {
+
+    private static final int DEFAULT_PAGE = 0;
+    private static final int DEFAULT_SIZE = 10;
+    private static final int MAX_SIZE = 100;
 
     private final HotelElasticRepository hotelElasticRepository;
 
     @Override
     public Page<HotelDocument> searchInElasticsearch(HotelSearchRequest request) {
+        Pageable pageable = PageRequest.of(resolvePage(request.page()), resolveSize(request.size()));
 
-        int pageNumber = (request.page() != null) ? request.page() : 0;
-        int pageSize = (request.size() != null) ? request.size() : 10;
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-
-
-        if (request.city() != null && !request.city().isEmpty()) {
-            return hotelElasticRepository.findByCityMatches(request.city(), pageable);
+        if (!hasSearchText(request)) {
+            return hotelElasticRepository.findAll(pageable);
         }
 
+        return hotelElasticRepository.searchAcrossAllFields(buildSearchText(request), pageable);
+    }
 
-        if (request.district() != null && !request.district().isEmpty()) {
-            return hotelElasticRepository.findByDistrictMatches(request.district(), pageable);
-        }
-
-
-        if (request.description() != null && !request.description().isEmpty()) {
-            return hotelElasticRepository.findByNameMatchesOrDescriptionMatches(
-                    request.description(),
-                    request.description(),
-                    pageable
-            );
-        }
-
-
+    @Override
+    public Page<HotelDocument> getTopRatedHotels(int size) {
+        // En yüksek puanlıları getirmek için rating alanına göre azalan sıralama (DESC)
+        Pageable pageable = PageRequest.of(0, Math.min(size, MAX_SIZE), Sort.by(Sort.Direction.DESC, "rating"));
         return hotelElasticRepository.findAll(pageable);
+    }
+
+    // --- Yardımcı Metotlar ---
+    private int resolvePage(Integer page) { return (page == null || page < 0) ? DEFAULT_PAGE : page; }
+    private int resolveSize(Integer size) { return (size == null || size < 1) ? DEFAULT_SIZE : Math.min(size, MAX_SIZE); }
+    private boolean hasSearchText(HotelSearchRequest request) {
+        return StringUtils.hasText(request.city()) || StringUtils.hasText(request.district()) || StringUtils.hasText(request.description());
+    }
+    private String buildSearchText(HotelSearchRequest request) {
+        return Stream.of(request.city(), request.district(), request.description())
+                .filter(StringUtils::hasText).map(String::trim).collect(Collectors.joining(" "));
     }
 }

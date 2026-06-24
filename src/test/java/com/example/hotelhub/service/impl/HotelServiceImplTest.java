@@ -1,12 +1,16 @@
 package com.example.hotelhub.service.impl;
 
 import com.example.hotelhub.dto.request.HotelRequest;
+import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.User;
+import com.example.hotelhub.event.HotelSyncEvent;
 import com.example.hotelhub.exception.ResourceNotFoundException;
 import com.example.hotelhub.mapper.HotelMapper;
+import com.example.hotelhub.messaging.producer.BookingProducer;
 import com.example.hotelhub.repository.HotelRepository;
+import com.example.hotelhub.repository.RoomRepository;
 import com.example.hotelhub.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,6 +18,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,7 +46,16 @@ class HotelServiceImplTest {
     private HotelRepository hotelRepository;
 
     @Mock
+    private RoomRepository roomRepository;
+
+    @Mock
     private HotelMapper hotelMapper; // MapStruct kullandığımız için bunu da sahte (mock) olarak veriyoruz
+
+    @Mock
+    private BookingProducer bookingProducer;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private HotelServiceImpl hotelService;
@@ -107,7 +127,7 @@ class HotelServiceImplTest {
         );
 
         // Fırlatılan hatanın mesajı doğru mu diye kontrol ediyoruz
-        assertEquals("Otel Bulunamadı! ID: " + hotelId, exception.getMessage());
+        assertEquals("Otel bulunamadı! ID: " + hotelId, exception.getMessage());
 
         // Veritabanına gidilmiş mi diye bakıyoruz
         verify(hotelRepository, times(1)).findById(hotelId);
@@ -146,6 +166,7 @@ class HotelServiceImplTest {
         assertEquals(expectedResponse, result);
         verify(userRepository, times(1)).findByEmail(userEmail);
         verify(hotelRepository, times(1)).save(mockHotel);
+        verify(eventPublisher, times(1)).publishEvent(any(HotelSyncEvent.class));
     }
 
     @Test
@@ -168,18 +189,37 @@ class HotelServiceImplTest {
         when(hotelRepository.findById(hotelId)).thenReturn(java.util.Optional.of(mockHotel));
 
         // WHEN & THEN
-        IllegalStateException exception = assertThrows(
-                IllegalStateException.class,
+        AccessDeniedException exception = assertThrows(
+                AccessDeniedException.class,
                 () -> hotelService.updateHotel(hotelId, request, requesterEmail)
         );
 
-        assertEquals("Bu oteli güncelleme yetkiniz yok! Sadece kendi otelinizi güncelleyebilirsiniz.", exception.getMessage());
+        assertEquals("Bu işlem için yetkiniz yok! Sadece kendi otelinizi yönetebilirsiniz.", exception.getMessage());
 
         // KRİTİK: Yetkisiz işlem olduğu için save() METODU ASLA ÇAĞRILMAMALI! (Güvenlik Testi)
         verify(hotelRepository, never()).save(any(Hotel.class));
     }
 
     @Test
-    void deleteHotel() {
+    @DisplayName("Başarılı Senaryo: Otel sahibi kendi otelini soft delete yapabilmeli")
+    void deleteHotel_ShouldSoftDeleteHotelAndRooms_WhenOwnerMatches() {
+        Long hotelId = 1L;
+        String ownerEmail = "owner@user.com";
+
+        User owner = new User();
+        owner.setEmail(ownerEmail);
+
+        Hotel hotel = new Hotel();
+        hotel.setId(hotelId);
+        hotel.setManager(owner);
+
+        when(hotelRepository.findById(hotelId)).thenReturn(java.util.Optional.of(hotel));
+        when(roomRepository.softDeleteByHotelId(hotelId)).thenReturn(2);
+
+        hotelService.deleteHotel(hotelId, ownerEmail);
+
+        assertEquals(true, hotel.isDeleted());
+        verify(roomRepository, times(1)).softDeleteByHotelId(hotelId);
+        verify(hotelRepository, times(1)).save(hotel);
     }
 }

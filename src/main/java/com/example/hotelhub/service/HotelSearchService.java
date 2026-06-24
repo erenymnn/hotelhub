@@ -8,4 +8,5 @@ import org.springframework.data.domain.Page;
 
 public interface HotelSearchService {
     Page<HotelDocument> searchInElasticsearch(HotelSearchRequest request);
+    Page<HotelDocument> getTopRatedHotels(int size); //
 }

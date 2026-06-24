@@ -1,29 +1,29 @@
 package com.example.hotelhub.messaging.consumer;
 
-import com.example.hotelhub.event.HotelSyncEvent;
 import com.example.hotelhub.elasticsearch.HotelDocument;
-import com.example.hotelhub.elasticsearch.HotelElasticRepository; // 🔥 Senin reponu bağladık
+import com.example.hotelhub.elasticsearch.HotelElasticRepository;
+import com.example.hotelhub.event.HotelDeleteEvent;
+import com.example.hotelhub.event.HotelSyncEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class HotelSyncConsumer {
 
-
     private final HotelElasticRepository hotelElasticRepository;
 
-    @Async // Ana thread'i bloklamadan arka planda asenkron çalıştırır
-    @EventListener // Spring Event Bus'a düşen HotelSyncEvent'leri otomatik yakalar
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void consumeHotelSyncEvent(HotelSyncEvent event) {
-        log.info(" Spring Event Bus'tan yeni otel senkronizasyon eventi alındı! Otel ID: {}", event.id());
+        log.info("Spring Event Bus'tan yeni otel senkronizasyon eventi alındı! Otel ID: {}", event.id());
 
         try {
-            // Alanların hepsi eksiksiz map ediliyor
             HotelDocument document = HotelDocument.builder()
                     .id(event.id().toString())
                     .name(event.name())
@@ -35,10 +35,21 @@ public class HotelSyncConsumer {
 
             hotelElasticRepository.save(document);
 
-            log.info(" [Consumer] Otel başarıyla Elasticsearch'e yazıldı! ID: {}", document.getId());
-
+            log.info("Otel başarıyla Elasticsearch'e yazıldı! ID: {}", document.getId());
         } catch (Exception e) {
-            log.error(" [Consumer] Elasticsearch'e yazarken hata fırlatıldı! Hata detayı: ", e);
+            log.error("Elasticsearch'e yazarken hata fırlatıldı.", e);
+        }
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void consumeHotelDeleteEvent(HotelDeleteEvent event) {
+        log.info("Silme eventi alındı. Elasticsearch'ten siliniyor! Otel ID: {}", event.hotelId());
+        try {
+            hotelElasticRepository.deleteById(event.hotelId().toString());
+            log.info("Otel Elasticsearch'ten başarıyla silindi! ID: {}", event.hotelId());
+        } catch (Exception e) {
+            log.error("Elasticsearch'ten silinirken hata oluştu.", e);
         }
     }
 }

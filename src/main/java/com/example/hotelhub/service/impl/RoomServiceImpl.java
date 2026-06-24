@@ -10,10 +10,12 @@ import com.example.hotelhub.repository.HotelRepository;
 import com.example.hotelhub.repository.RoomRepository;
 import com.example.hotelhub.service.RoomService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -27,39 +29,26 @@ public class RoomServiceImpl implements RoomService {
     @Transactional
     @Override
     public RoomResponse addRoomToHotel(RoomRequest request, String userEmail) {
-
-        Hotel hotel = hotelRepository.findById(request.hotelId())
-                .orElseThrow(() -> new ResourceNotFoundException("Otel Bulunamadı! ID: " + request.hotelId()));
-
-
-        if (!hotel.getManager().getEmail().equals(userEmail)) {
-            throw new IllegalStateException("Sadece kendi otelinize oda ekleyebilirsiniz!");
-        }
-
+        Hotel hotel = findHotelById(request.hotelId());
+        assertHotelOwnership(hotel, userEmail);
 
         Room room = roomMapper.toEntity(request);
-
-
         room.setHotel(hotel);
+        room.setIsAvailable(true); // Varsayılan değer
 
-        Room savedRoom = roomRepository.save(room);
-        return roomMapper.toResponse(savedRoom);
+        return roomMapper.toResponse(roomRepository.save(room));
     }
 
     @Override
     public RoomResponse getRoomById(Long id) {
-        Room room = roomRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Oda bulunamadı!"));
-        return roomMapper.toResponse(room);
+        return roomMapper.toResponse(findRoomById(id));
     }
 
     @Override
     public List<RoomResponse> getRoomsByHotelId(Long hotelId) {
-
         if (!hotelRepository.existsById(hotelId)) {
-            throw new ResourceNotFoundException("Otel Bulunamadı! ID: " + hotelId);
+            throw new ResourceNotFoundException("Otel bulunamadı! ID: " + hotelId);
         }
-
         return roomRepository.findByHotelId(hotelId)
                 .stream()
                 .map(roomMapper::toResponse)
@@ -69,47 +58,54 @@ public class RoomServiceImpl implements RoomService {
     @Transactional
     @Override
     public RoomResponse updateRoom(Long id, RoomRequest request, String userEmail) {
-        Room room = roomRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Oda bulunamadı! ID: " + id));
+        Room room = findRoomById(id);
+        assertHotelOwnership(room.getHotel(), userEmail);
 
-
-        if (!room.getHotel().getManager().getEmail().equals(userEmail)) {
-            throw new IllegalStateException("Bu odayı güncelleme yetkiniz yok! Oda sizin otelinize ait değil.");
-        }
-
-
-        if (!room.getHotel().getId().equals(request.hotelId())) {
-            Hotel newHotel = hotelRepository.findById(request.hotelId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Yeni Otel Bulunamadı! ID: " + request.hotelId()));
-
-
-            if (!newHotel.getManager().getEmail().equals(userEmail)) {
-                throw new IllegalStateException("Odayı başkasının oteline taşıyamazsınız!");
-            }
+        // Eğer oda başka bir otele taşınıyorsa, yeni otelin de sahibi olduğunu doğrula
+        if (!Objects.equals(room.getHotel().getId(), request.hotelId())) {
+            Hotel newHotel = findHotelById(request.hotelId());
+            assertHotelOwnership(newHotel, userEmail);
             room.setHotel(newHotel);
         }
 
-
         roomMapper.updateEntityFromRequest(request, room);
-
-        Room updatedRoom = roomRepository.save(room);
-        return roomMapper.toResponse(updatedRoom);
+        return roomMapper.toResponse(roomRepository.save(room));
     }
 
     @Transactional
     @Override
     public void deleteRoom(Long id, String userEmail) {
+        Room room = findRoomById(id);
+        assertHotelOwnership(room.getHotel(), userEmail);
 
-        Room room = roomRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Oda bulunamadı!"));
-
-
-        if (!room.getHotel().getManager().getEmail().equals(userEmail)) {
-            throw new IllegalStateException("Bu odayı silme yetkiniz yok! Oda sizin otelinize ait değil.");
-        }
-
-
-        room.set_Deleted(true); // Manuel soft delete
+        room.setDeleted(true);
         roomRepository.save(room);
+    }
+
+    @Transactional
+    @Override
+    public void setRoomAvailability(Long id, boolean isAvailable, String userEmail) {
+        Room room = findRoomById(id);
+        assertHotelOwnership(room.getHotel(), userEmail);
+
+        room.setIsAvailable(isAvailable);
+        roomRepository.save(room);
+    }
+
+    // --- Yardımcı Metotlar ---
+    private Hotel findHotelById(Long hotelId) {
+        return hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Otel bulunamadı! ID: " + hotelId));
+    }
+
+    private Room findRoomById(Long roomId) {
+        return roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Oda bulunamadı! ID: " + roomId));
+    }
+
+    private void assertHotelOwnership(Hotel hotel, String userEmail) {
+        if (hotel.getManager() == null || !Objects.equals(hotel.getManager().getEmail(), userEmail)) {
+            throw new AccessDeniedException("Bu işlem için yetkiniz yok!");
+        }
     }
 }

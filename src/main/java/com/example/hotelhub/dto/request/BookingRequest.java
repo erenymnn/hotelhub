@@ -23,4 +23,5 @@ public record BookingRequest(
         LocalDate checkOutDate
 
 ) {
+
 }
