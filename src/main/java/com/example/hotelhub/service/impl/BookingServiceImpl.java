@@ -6,6 +6,7 @@ import com.example.hotelhub.entity.Booking;
 import com.example.hotelhub.entity.Room;
 import com.example.hotelhub.entity.User;
 import com.example.hotelhub.entity.enums.BookingStatus;
+import com.example.hotelhub.entity.enums.Role;
 import com.example.hotelhub.event.BookingEvent;
 import com.example.hotelhub.exception.ResourceNotFoundException;
 import com.example.hotelhub.exception.RoomAlreadyBookedException;
@@ -30,7 +31,8 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional(readOnly = true)
+@Transactional(readOnly = true) //örneğin mail gönderimi patlarsa veya veritabanı bağlantısı koparsa), yapılan tüm değişiklikler otomatik geri alınır. Verin asla bozulmaz.
+//eğer true yazmazsak tüm nesneleri takip edip güncelleme var mı diye bakar .
 public class BookingServiceImpl implements BookingService {
 
     private final BookingMapper bookingMapper;
@@ -118,8 +120,18 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void assertBookingOwnership(Booking booking, String userEmail) {
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı"));
+
+
+        boolean isAdmin = user.getRoles().contains(Role.ADMIN);
+
+        //  Rezervasyonun sahibi kim?
         String bookingOwnerEmail = booking.getUser() == null ? null : booking.getUser().getEmail();
-        if (!Objects.equals(bookingOwnerEmail, userEmail)) {
+
+        // Eğer ADMIN değilse VE rezervasyonun sahibi değilse hata fırlat
+        if (!isAdmin && !Objects.equals(bookingOwnerEmail, userEmail)) {
             throw new AccessDeniedException("Sadece kendi rezervasyonunuzu iptal edebilirsiniz!");
         }
     }

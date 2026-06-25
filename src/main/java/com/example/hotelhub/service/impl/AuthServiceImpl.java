@@ -42,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(request.email());
         user.setFirstName(request.firstName());
         user.setLastName(request.lastName());
-        user.setPassword(passwordEncoder.encode(request.password()));
+        user.setPassword(passwordEncoder.encode(request.password())); //bcrypt olarak saklıyoruz 123456 diye değil .
         user.setRoles(resolveRoles(request.roles()));
 
         userRepository.save(user);
@@ -55,11 +55,11 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.email())
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı!"));
 
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) { //şifreyi hashleyip tekrar karsılastırır.
             throw new IllegalArgumentException("Hatalı şifre!");
         }
 
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateToken(user); //sistem onu tanıyacak her isteğinde bu tokenı gönderecek
         return new LoginResponse(token, user.getEmail());
     }
 
@@ -73,7 +73,7 @@ public class AuthServiceImpl implements AuthService {
         return requestedRoles.stream()
                 .map(String::toUpperCase)
                 .filter(roleStr -> {
-                    if (roleStr.equals("ADMIN")) {
+                    if (roleStr.equals("ADMIN")) { //yani customer olan bir kişi yetki yükseltemez.
                         throw new IllegalArgumentException("Hata: ADMIN rolü seçilemez!");
                     }
                     return true;

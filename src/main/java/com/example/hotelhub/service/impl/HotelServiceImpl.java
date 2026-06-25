@@ -5,6 +5,7 @@ import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.User;
+import com.example.hotelhub.entity.enums.Role;
 import com.example.hotelhub.event.HotelDeleteEvent;
 import com.example.hotelhub.event.HotelSyncEvent;
 import com.example.hotelhub.exception.ResourceNotFoundException;
@@ -48,7 +49,7 @@ public class HotelServiceImpl implements HotelService {
 
         Hotel savedHotel = hotelRepository.save(hotel);
 
-        // Senkronizasyonu tetikle
+        // Senkronizasyonu tetikle yani otel güncellendiginde elasticsearch de haber veriyorsun.
         eventPublisher.publishEvent(createHotelSyncEvent(savedHotel));
 
         return hotelMapper.toResponse(savedHotel);
@@ -56,7 +57,7 @@ public class HotelServiceImpl implements HotelService {
 
     @Override
     public Page<HotelResponse> getAllHotels(Pageable pageable) {
-        return hotelRepository.findAll(pageable).map(hotelMapper::toResponse);
+        return hotelRepository.findAll(pageable).map(hotelMapper::toResponse); //hotelmappardan response şekline çevirir.kullanıcıya göndereceğim temiz (DTO) formata dönüştür."
     }
 
     @Override
@@ -92,11 +93,11 @@ public class HotelServiceImpl implements HotelService {
         Hotel hotel = findHotelById(id);
         assertHotelOwnership(hotel, userEmail);
 
-        roomRepository.softDeleteByHotelId(id);
-        hotel.setDeleted(true);
+        roomRepository.softDeleteByHotelId(id); //önce odaları sil
+        hotel.setDeleted(true); //oteli sil
         hotelRepository.save(hotel);
 
-        // ELASTICSEARCH'TE SİLİNMESİ İÇİN EVENT TETİKLE
+        // ELASTICSEARCH'TE SİLİNMESİ İÇİN EVENT TETİKLE yani arama motorundan da kaldır.
         eventPublisher.publishEvent(new HotelDeleteEvent(id));
     }
 
@@ -114,7 +115,14 @@ public class HotelServiceImpl implements HotelService {
     }
 
     private void assertHotelOwnership(Hotel hotel, String userEmail) {
-        if (hotel.getManager() == null || !Objects.equals(hotel.getManager().getEmail(), userEmail)) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı"));
+
+        // Eğer kullanıcı ADMIN ise kurala takılmadan geçsin
+        boolean isAdmin = user.getRoles().contains(Role.ADMIN);
+
+        // ADMIN değilse, o zaman "sahiplik" (ownership) kontrolü yap
+        if (!isAdmin && (hotel.getManager() == null || !Objects.equals(hotel.getManager().getEmail(), userEmail))) {
             throw new AccessDeniedException("Bu otel üzerinde işlem yapma yetkiniz yok!");
         }
     }
