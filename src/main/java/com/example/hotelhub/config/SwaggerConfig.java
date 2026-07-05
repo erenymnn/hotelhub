@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Configuration;
         servers = {
                 @Server(url = "http://localhost:8080", description = "Yerel Geliştirme Sunucusu")
         },
-        security = @SecurityRequirement(name = "bearerAuth")
+        security = @SecurityRequirement(name = "bearerAuth") //isteklere kilit koyar.
 )
 @SecurityScheme(
         name = "bearerAuth",

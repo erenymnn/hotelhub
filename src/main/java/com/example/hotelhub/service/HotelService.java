@@ -3,6 +3,7 @@ package com.example.hotelhub.service;
 import com.example.hotelhub.dto.request.HotelRequest;
 import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
+import com.example.hotelhub.dto.response.PageResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -12,8 +13,8 @@ public interface HotelService {
 
     HotelResponse createHotel(HotelRequest request, String userEmail);
 
-    Page<HotelResponse> getAllHotels(Pageable pageable);
-    Page<HotelResponse> searchHotels(HotelSearchRequest request, Pageable pageable);
+    PageResponse<HotelResponse> getAllHotels(Pageable pageable);
+    PageResponse<HotelResponse> searchHotels(HotelSearchRequest request, Pageable pageable);
 
     HotelResponse getHotelById(Long id);
 
@@ -21,6 +22,6 @@ public interface HotelService {
 
     void deleteHotel(Long id, String userEmail);
 
-    Page<HotelResponse> getMyHotels(String userEmail, Pageable pageable);
+    PageResponse<HotelResponse> getMyHotels(String userEmail, Pageable pageable);
 
 }

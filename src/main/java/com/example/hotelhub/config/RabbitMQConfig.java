@@ -27,6 +27,8 @@ public class RabbitMQConfig {
     public Queue bookingQueue() { // İsmini queue yerine bookingQueue yaptık ki karışmasın
         return new Queue(BOOKING_QUEUE, true);
     }
+    //eğer RabbitMQ sunucusu aniden kapanırsa veya restart edilirse, kuyruklar ve içindeki işlenmemiş mesajlar silinmez, hafızada (disk üzerinde) kalır.
+
 
     @Bean
     public TopicExchange bookingExchange() {

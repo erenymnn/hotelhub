@@ -34,7 +34,7 @@ public class BookingController {
 
     @GetMapping("/my-bookings")
     @PreAuthorize("hasAuthority('CUSTOMER')")
-    public ResponseEntity<List<BookingResponse>> getUserBookings(Principal principal) {
+    public ResponseEntity<List<BookingResponse>> getUserBookings(Principal principal) { //principal ile "o an giriş yapmış kişiye" ait verileri çekeriz
         return ResponseEntity.ok(bookingService.getUserBookings(principal.getName()));
     }
 
@@ -42,7 +42,8 @@ public class BookingController {
     @PreAuthorize("hasAuthority('CUSTOMER')")
     public ResponseEntity<Void> cancelBooking(
             @PathVariable Long bookingId,
-            Principal principal
+            Principal principal //principal alma sebebimiz eğer eposta alsaydık kotu biri oepostayı yazıp rezervasyonu iptal ederdi.
+    //principal kimlik kartıdır.
     ) {
         bookingService.cancelBooking(bookingId, principal.getName());
         return ResponseEntity.noContent().build(); // 204 No Content, silme/iptal işlemleri için standarttır

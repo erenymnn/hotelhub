@@ -44,9 +44,10 @@ public class AuthController {
         LoginResponse loginResponse = authService.login(request);
 
         ResponseCookie cookie = ResponseCookie.from("jwt_token", loginResponse.token())
-                .httpOnly(true)
+                .httpOnly(true) //eğer olmazsa kotu niyetli saldırı olursa tokenımızı gorebilir kendi sunucusuna gonderir ve rezarvasyon vs silip yönetebilir
+                //ama true yaptıgında bu çerezi sadece backend gorebilir.sadece api isteklerinde back endcci kullanır.otomatik gelir.
                 .secure(cookieSecure)
-                .sameSite(cookieSecure ? "None" : "Lax")
+                .sameSite(cookieSecure ? "None" : "Lax") //modern koruma
                 .path("/")
                 .maxAge(24 * 60 * 60)
                 .build();
@@ -60,7 +61,7 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()") //sadece sisteme giriş yapmış olanlar bunu kullanabilir.
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         ResponseCookie cookie = ResponseCookie.from("jwt_token", "")
                 .httpOnly(true)

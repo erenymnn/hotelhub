@@ -2,7 +2,6 @@ package com.example.hotelhub.service;
 
 import com.example.hotelhub.dto.request.RoomRequest;
 import com.example.hotelhub.dto.response.RoomResponse;
-
 import java.util.List;
 
 public interface RoomService {

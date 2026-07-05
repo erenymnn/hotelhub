@@ -34,7 +34,7 @@ public class JwtServiceImpl implements JwtService {
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         // Rolleri listeye çevirip JWT'nin içine "roles" ismiyle gömüyoruz
-        claims.put("roles", userDetails.getAuthorities().stream()
+        claims.put("roles", userDetails.getAuthorities().stream() //burada kullanın rollerinide tokene gomuyoruz ki admin old vs anlayalım diye.
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList()));
 
@@ -64,14 +64,14 @@ public class JwtServiceImpl implements JwtService {
 
     // Modern parser kullanımı
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = Jwts.parserBuilder() // Eğer 0.12+ kullanıyorsan parser().verifyWith(getSignInKey()).build() kullan
+        final Claims claims = Jwts.parserBuilder()
                 .setSigningKey(getSignInKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
         return claimsResolver.apply(claims);
     }
-
+//tokenların içerigini görme
     private Key getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);

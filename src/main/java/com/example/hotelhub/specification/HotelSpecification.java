@@ -74,11 +74,11 @@ public class HotelSpecification {
                                 criteriaBuilder.equal(bookingRoot.get("status"), BookingStatus.CONFIRMED)
                         ));
 
-                predicates.add(criteriaBuilder.not(roomsJoin.get("id").in(busyRoomsQuery)));
+                predicates.add(criteriaBuilder.not(roomsJoin.get("id").in(busyRoomsQuery))); // o tarihlerde dolu olan odaları cıkar.dolayısıyla o oteli cıkar.
             }
 
 
-            predicates.add(criteriaBuilder.isFalse(root.get("deleted")));
+            predicates.add(criteriaBuilder.isFalse(root.get("deleted"))); //silinmemiş olanları getir demek.
 
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };

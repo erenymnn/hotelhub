@@ -4,10 +4,13 @@ import com.example.hotelhub.dto.request.RoomRequest;
 import com.example.hotelhub.dto.response.RoomResponse;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.Room;
+import com.example.hotelhub.entity.User;
+import com.example.hotelhub.entity.enums.Role;
 import com.example.hotelhub.exception.ResourceNotFoundException;
 import com.example.hotelhub.mapper.RoomMapper;
 import com.example.hotelhub.repository.HotelRepository;
 import com.example.hotelhub.repository.RoomRepository;
+import com.example.hotelhub.repository.UserRepository;
 import com.example.hotelhub.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -24,6 +27,7 @@ public class RoomServiceImpl implements RoomService {
 
     private final RoomRepository roomRepository;
     private final HotelRepository hotelRepository;
+    private final UserRepository userRepository;
     private final RoomMapper roomMapper;
 
     @Transactional
@@ -92,7 +96,7 @@ public class RoomServiceImpl implements RoomService {
         roomRepository.save(room);
     }
 
-    //  Yardımcı Metotlar
+
     private Hotel findHotelById(Long hotelId) {
         return hotelRepository.findById(hotelId)
                 .orElseThrow(() -> new ResourceNotFoundException("Otel bulunamadı! ID: " + hotelId));
@@ -104,7 +108,15 @@ public class RoomServiceImpl implements RoomService {
     }
 
     private void assertHotelOwnership(Hotel hotel, String userEmail) {
-        if (hotel.getManager() == null || !Objects.equals(hotel.getManager().getEmail(), userEmail)) {
+
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı"));
+
+
+        boolean isAdmin = user.getRoles().contains(Role.ADMIN);
+
+
+        if (!isAdmin && (hotel.getManager() == null || !Objects.equals(hotel.getManager().getEmail(), userEmail))) {
             throw new AccessDeniedException("Bu işlem için yetkiniz yok!");
         }
     }

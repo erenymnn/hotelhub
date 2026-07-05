@@ -3,6 +3,7 @@ package com.example.hotelhub.controller;
 import com.example.hotelhub.dto.request.HotelRequest;
 import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
+import com.example.hotelhub.dto.response.PageResponse;
 import com.example.hotelhub.service.HotelService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,7 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-
 @RestController
 @RequestMapping("/api/hotels")
 @RequiredArgsConstructor
@@ -25,9 +25,8 @@ public class HotelController {
 
     private final HotelService hotelService;
 
-
     @GetMapping
-    public ResponseEntity<Page<HotelResponse>> getAllHotels(
+    public ResponseEntity<PageResponse<HotelResponse>> getAllHotels(
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ) {
         return ResponseEntity.ok(hotelService.getAllHotels(pageable));
@@ -35,18 +34,19 @@ public class HotelController {
 
 
     @PostMapping("/search")
-    public ResponseEntity<Page<HotelResponse>> searchHotels(
+    public ResponseEntity<PageResponse<HotelResponse>> searchHotels(
             @RequestBody HotelSearchRequest request,
             @PageableDefault(size = 10, page = 0) Pageable pageable
     ) {
         return ResponseEntity.ok(hotelService.searchHotels(request, pageable));
     }
 
+
     @GetMapping("/my-hotels")
     @PreAuthorize("hasAuthority('MANAGER')")
-    public ResponseEntity<Page<HotelResponse>> getMyHotels(
+    public ResponseEntity<PageResponse<HotelResponse>> getMyHotels(
             @PageableDefault(size = 10, page = 0) Pageable pageable,
-            Principal principal
+            Principal principal // principal sadece o yöneticiye ait otellerin gelmesini sağlıyoruz.
     ) {
         return ResponseEntity.ok(hotelService.getMyHotels(principal.getName(), pageable));
     }

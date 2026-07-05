@@ -1,15 +1,14 @@
 package com.example.hotelhub.dto.request;
-
 import com.example.hotelhub.entity.enums.RoomType;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-
 import java.math.BigDecimal;
 import java.util.List;
 
 public record RoomRequest(
+
         @NotBlank(message = "Oda numarası boş olamaz!")
         String roomNumber,
 
@@ -26,8 +25,6 @@ public record RoomRequest(
         @NotNull(message = "Kapasite boş olamaz!")
         @Min(value = 1, message = "Kapasite en az 1 kişi olmalıdır!")
         Integer capacity,
-
-
         Boolean hasAirConditioning,
         Boolean hasBalcony,
 

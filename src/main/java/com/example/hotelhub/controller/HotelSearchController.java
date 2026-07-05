@@ -26,7 +26,7 @@ public class HotelSearchController {
     //En iyi otelleri listeleyen metot
     @GetMapping("/top-rated")
     public ResponseEntity<Page<HotelDocument>> getTopRatedHotels(
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size //kullanıcı değer girmezse 10 adet yani default sırala demek
     ) {
         return ResponseEntity.ok(hotelSearchService.getTopRatedHotels(size));
     }

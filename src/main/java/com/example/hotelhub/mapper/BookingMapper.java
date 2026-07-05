@@ -6,10 +6,10 @@ import com.example.hotelhub.entity.Booking;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring")//bu bir spring bean oldugunu ifade ediyorsun.
 public interface BookingMapper {
 
-    @Mapping(source = "room.id", target = "roomId")
+    @Mapping(source = "room.id", target = "roomId") //room.id yi vriyi alıp roomId ye taşı demek
     @Mapping(source = "user.id", target = "userId")
     BookingResponse toResponse(Booking booking);
 

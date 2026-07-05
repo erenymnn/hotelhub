@@ -5,10 +5,8 @@ import com.example.hotelhub.entity.enums.Role;
 import com.example.hotelhub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-
 import java.util.Set;
 
 @Component

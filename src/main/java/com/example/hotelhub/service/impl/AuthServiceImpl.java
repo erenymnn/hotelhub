@@ -64,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Set<Role> resolveRoles(Set<String> requestedRoles) {
-
+    //dışarıdan rol gelmezse
         if (requestedRoles == null || requestedRoles.isEmpty()) {
             return EnumSet.of(Role.CUSTOMER);
         }

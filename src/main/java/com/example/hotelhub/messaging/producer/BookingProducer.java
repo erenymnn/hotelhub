@@ -3,6 +3,7 @@ package com.example.hotelhub.messaging.producer;
 import com.example.hotelhub.config.RabbitMQConfig;
 import com.example.hotelhub.event.BookingEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -10,9 +11,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingProducer {
 
-    private static final Logger log = LoggerFactory.getLogger(BookingProducer.class);
+
     private final RabbitTemplate rabbitTemplate;
 
     // String değil, BookingEvent nesnesi alıyoruz

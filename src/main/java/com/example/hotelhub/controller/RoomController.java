@@ -64,8 +64,8 @@ public class RoomController {
     }
 
     //Müsaitlik durumu güncelleme
-    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')")
-    @PatchMapping("/{id}/availability")
+    @PreAuthorize("hasAnyAuthority('MANAGER', 'ADMIN')") // eğer 1 den fazla yetki varsa any olan kullanılır yoksa hasAuthority
+    @PatchMapping("/{id}/availability") //patch sadece 1 özellik degiştirdigimiz icin kullanıyoruz
     public ResponseEntity<Void> setRoomAvailability(
             @PathVariable Long id,
             @RequestParam boolean isAvailable,

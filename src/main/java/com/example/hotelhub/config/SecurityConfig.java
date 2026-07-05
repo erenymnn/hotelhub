@@ -14,7 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.http.HttpMethod;
 
 @Configuration
-@EnableWebSecurity
+@EnableWebSecurity //controller kısmındaki @PreAuthorize("hasAuthority('CUSTOMER')") gibi anotasyonları çalıştırır.
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
@@ -25,9 +25,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
+                .csrf(AbstractHttpConfigurer::disable) //"Cross-Site Request Forgery" korumasını devre dışı bırakıyoruz. Neden? Çünkü biz Stateless (JWT tabanlı) bir sistem kullanıyoruz ve token bazlı çalıştığımız için CSRF korumasına bu mimaride gerek kalmıyor.
                 .authorizeHttpRequests(auth -> auth
-                        // 1. PUBLIC (Herkese Açık)
+                        //  PUBLIC
                         .requestMatchers(
                                 "/api/auth/**",
                                 "/v3/api-docs/**",
@@ -39,7 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/hotels/**", "/api/rooms/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/search/**").permitAll()
 
-                        // 2. PRIVATE (Sadece Yetkililer)
+                        // PRIVATE (Sadece Yetkililer)
                         // Booking işlemleri için en azından giriş yapmış olmak şart
                         .requestMatchers("/api/bookings/**").authenticated()
 
@@ -48,9 +48,11 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        //stateless ile hafızada kimseyi tutma her seferinde kimlik bak sonra unut
                 )
-                .authenticationProvider(authenticationProvider)
+                .authenticationProvider(authenticationProvider) //Kimlik doğrulama işleminin (kullanıcıyı bulma, şifreyi kontrol etme) nasıl yapılacağını buraya bağlıyoruz.
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        //Kendi yazdığımız jwtAuthFilterı, Spring'in standart kullanıcı adı/şifre doğrulama filtresinin önüne yerleştiriyoruz. Böylece kullanıcı istek attığında önce bizim JWT kontrolcümüz çalışıyor.
 
         return http.build();
     }

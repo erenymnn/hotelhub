@@ -3,6 +3,7 @@ package com.example.hotelhub.service.impl;
 import com.example.hotelhub.dto.request.HotelRequest;
 import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
+import com.example.hotelhub.dto.response.PageResponse;
 import com.example.hotelhub.entity.Hotel;
 import com.example.hotelhub.entity.User;
 import com.example.hotelhub.entity.enums.Role;
@@ -17,6 +18,8 @@ import com.example.hotelhub.service.HotelService;
 import com.example.hotelhub.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -24,6 +27,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -40,6 +44,7 @@ public class HotelServiceImpl implements HotelService {
 
     @Transactional
     @Override
+    @CacheEvict(value = "hotelsCache", allEntries = true)
     public HotelResponse createHotel(HotelRequest request, String userEmail) {
         User manager = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + userEmail));
@@ -56,17 +61,30 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
-    public Page<HotelResponse> getAllHotels(Pageable pageable) {
-        return hotelRepository.findAll(pageable).map(hotelMapper::toResponse); //hotelmappardan response şekline çevirir.kullanıcıya göndereceğim temiz (DTO) formata dönüştür."
+    @Cacheable(value = "hotelsCache")
+    public PageResponse<HotelResponse> getAllHotels(Pageable pageable) {
+
+        Page<Hotel> hotelPage = hotelRepository.findAll(pageable);
+        List<HotelResponse> content = hotelPage.getContent().stream()
+                .map(hotelMapper::toResponse)
+                .toList();
+
+
+        return PageResponse.of(hotelPage, content);
     }
 
     @Override
-    public Page<HotelResponse> searchHotels(HotelSearchRequest request, Pageable pageable) {
+    public PageResponse<HotelResponse> searchHotels(HotelSearchRequest request, Pageable pageable) {
         log.info("Arama başlatıldı: {}", request.city());
-        return hotelRepository.findAll(HotelSpecification.filterHotels(request), pageable)
-                .map(hotelMapper::toResponse);
-    }
 
+        Page<Hotel> hotelPage = hotelRepository.findAll(HotelSpecification.filterHotels(request), pageable);
+        List<HotelResponse> content = hotelPage.getContent().stream()
+                .map(hotelMapper::toResponse)
+                .toList();
+
+
+        return PageResponse.of(hotelPage, content);
+    }
     @Override
     public HotelResponse getHotelById(Long id) {
         return hotelMapper.toResponse(findHotelById(id));
@@ -74,6 +92,7 @@ public class HotelServiceImpl implements HotelService {
 
     @Transactional
     @Override
+    @CacheEvict(value = "hotelsCache", allEntries = true) //entries br otel silindiginde tüm liste redisten atılıyor.
     public HotelResponse updateHotel(Long id, HotelRequest request, String userEmail) {
         Hotel hotel = findHotelById(id);
         assertHotelOwnership(hotel, userEmail);
@@ -89,6 +108,7 @@ public class HotelServiceImpl implements HotelService {
 
     @Transactional
     @Override
+    @CacheEvict(value = "hotelsCache", allEntries = true)
     public void deleteHotel(Long id, String userEmail) {
         Hotel hotel = findHotelById(id);
         assertHotelOwnership(hotel, userEmail);
@@ -102,10 +122,16 @@ public class HotelServiceImpl implements HotelService {
     }
 
     @Override
-    public Page<HotelResponse> getMyHotels(String userEmail, Pageable pageable) {
-        return hotelRepository.findAll((root, query, cb) ->
-                        cb.equal(root.get("manager").get("email"), userEmail), pageable)
-                .map(hotelMapper::toResponse);
+    public PageResponse<HotelResponse> getMyHotels(String userEmail, Pageable pageable) {
+
+        Page<Hotel> hotelPage = hotelRepository.findAll((root, query, cb) ->
+                cb.equal(root.get("manager").get("email"), userEmail), pageable);
+
+        List<HotelResponse> content = hotelPage.getContent().stream()
+                .map(hotelMapper::toResponse)
+                .toList();
+
+        return PageResponse.of(hotelPage, content);
     }
 
     // Yardımcı Metotlar

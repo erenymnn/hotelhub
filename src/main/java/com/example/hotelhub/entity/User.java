@@ -25,8 +25,8 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    @Column(unique = true, nullable = false) //ee ama service kısmında kontrol vardır ama 2 kullanıcı aynı anda kayıta basarsa senkronizasyon hatası olusabilir unique lazım.
+    private String email; // örnegin sistemde bir gün valid anatasyonu kullanmayı unuttun ise bu 2. savunma olarak ortaya çıkar sistemde tek güvenlik yeterli olmaz.
     @Column(nullable = false)
     private String password;
 
@@ -34,7 +34,7 @@ public class User implements UserDetails {
     private String lastName;
 
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.EAGER) //eager ile veritabanından çektigin an onunla ilişkili herşeyi hemen çek demek. tek sroguyla herşeyi çekersin role bilgileri bize hemen lazım old için.
     @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
@@ -75,7 +75,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.isActive;
     }
 }
 

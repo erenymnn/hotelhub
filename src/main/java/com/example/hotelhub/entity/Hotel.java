@@ -16,14 +16,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
-
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "hotels")
-@SQLDelete(sql = "UPDATE hotels SET is_deleted = true WHERE id=?")
-@SQLRestriction("is_deleted = false")
+@SQLDelete(sql = "UPDATE hotels SET is_deleted = true WHERE id=?")// otel sildiginde veritabanından silinmez.
+@SQLRestriction("is_deleted = false") // bu false ile sadece false olanları yani silinmeyenleri getir demektir.
 @Getter
 @Setter
 @NoArgsConstructor

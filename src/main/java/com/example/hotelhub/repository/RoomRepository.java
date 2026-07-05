@@ -14,7 +14,7 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
 
 
     @Modifying
-    @Query("update Room r set r.deleted = true where r.hotel.id = :hotelId")
+    @Query("update Room r set r.deleted = true where r.hotel.id = :hotelId") //sadece sistemden gizleniyor.
     int softDeleteByHotelId(@Param("hotelId") Long hotelId);
 
     // RoomRepository içine şu metodu ekle:

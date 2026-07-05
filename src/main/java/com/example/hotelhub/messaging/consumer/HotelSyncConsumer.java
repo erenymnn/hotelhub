@@ -19,7 +19,7 @@ public class HotelSyncConsumer {
     private final HotelElasticRepository hotelElasticRepository;
 
     @Async
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT) //eğer veritabanında başarıyla bir işlem olursa elasticSearch güncelle diyoruz.
     public void consumeHotelSyncEvent(HotelSyncEvent event) {
         log.info("Spring Event Bus'tan yeni otel senkronizasyon eventi alındı! Otel ID: {}", event.id());
 

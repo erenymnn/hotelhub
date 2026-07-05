@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.exceptionResolver = exceptionResolver;
     }
 
-    @Override
+    @Override //kimin giriş yaptıgı onemli degil burada public
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         String path = request.getRequestURI();
         return path.contains("/api/auth/")
@@ -57,9 +57,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
 
-        String jwt = extractJwtFromCookies(request);
+        String jwt = extractJwtFromCookies(request); //first cookie
 
-        if (jwt == null) {
+        if (jwt == null) { //if not cookie,look header
             String authHeader = request.getHeader("Authorization");
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 jwt = authHeader.substring(7);
@@ -72,9 +72,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
+            //tokenin içini açıyoruz ki kime ait oldugu belli olsun
             Claims claims = jwtService.extractAllClaims(jwt);
             String userEmail = claims.getSubject();
-
+//eğer sisteme kullancı giriş yaptıysa tekrar ugraşmaz
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
@@ -84,25 +85,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     List<SimpleGrantedAuthority> authorities = roles.stream()
                             .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList());
-
+//burada ise artık sen giriş yapmış birisin
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
                             authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                    SecurityContextHolder.getContext().setAuthentication(authToken); // istegin geri kalanında kullanıcının kim olduğunu bilmesini sağlar
                 }
             }
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             logger.error("JWT Doğrulama Hatası: " + e.getMessage());
-            exceptionResolver.resolveException(request, response, null, e);
+            exceptionResolver.resolveException(request, response, null, e); //süresi dolduysa eğer hatayı yakalar ve düzgün bir mesaj döner
         }
     }
-
+//bileti hem cookilerden hem de authorization:bearear token başlıgından arar eğer null ise tokenın yok der
     private String extractJwtFromCookies(HttpServletRequest request) {
-        if (request.getCookies() == null) return null;
+        if (request.getCookies() == null) return null; //null dondurme sebebim sistem çökmemesi için metod nul doner ve alt satırda patlardı.
         for (Cookie cookie : request.getCookies()) {
             if (JWT_COOKIE_NAME.equals(cookie.getName())) return cookie.getValue();
         }
