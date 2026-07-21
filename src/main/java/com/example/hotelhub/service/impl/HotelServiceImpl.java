@@ -5,6 +5,7 @@ import com.example.hotelhub.dto.request.HotelSearchRequest;
 import com.example.hotelhub.dto.response.HotelResponse;
 import com.example.hotelhub.dto.response.PageResponse;
 import com.example.hotelhub.entity.Hotel;
+import com.example.hotelhub.entity.Room;
 import com.example.hotelhub.entity.User;
 import com.example.hotelhub.entity.enums.Role;
 import com.example.hotelhub.event.HotelDeleteEvent;
@@ -15,15 +16,24 @@ import com.example.hotelhub.repository.HotelRepository;
 import com.example.hotelhub.repository.RoomRepository;
 import com.example.hotelhub.repository.UserRepository;
 import com.example.hotelhub.service.HotelService;
+import com.example.hotelhub.service.RedisCacheService;
 import com.example.hotelhub.specification.HotelSpecification;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,11 +50,17 @@ public class HotelServiceImpl implements HotelService {
     private final RoomRepository roomRepository;
     private final HotelMapper hotelMapper;
     private final UserRepository userRepository;
+    private final RedisCacheService redisCacheService;
+    private final CacheManager cacheManager;
+
+    @Autowired
+    @Lazy
+    private HotelServiceImpl self;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     @Override
-    @CacheEvict(value = "hotelsCache", allEntries = true)
+    @CacheEvict(value = {"hotelsCache", "topRatedHotels"}, allEntries = true)
     public HotelResponse createHotel(HotelRequest request, String userEmail) {
         User manager = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı: " + userEmail));
@@ -53,11 +69,13 @@ public class HotelServiceImpl implements HotelService {
         hotel.setManager(manager);
 
         Hotel savedHotel = hotelRepository.save(hotel);
-
+        HotelResponse response = hotelMapper.toResponse(savedHotel);
         // Senkronizasyonu tetikle yani otel güncellendiginde elasticsearch de haber veriyorsun.
         eventPublisher.publishEvent(createHotelSyncEvent(savedHotel));
 
-        return hotelMapper.toResponse(savedHotel);
+        // Oteli veritabanına kaydeder kaydetmez, doğrudan Redis'e de (rastgele TTL ile) yazıyoruz. write-through
+        redisCacheService.saveWithJitter("hotelDetails::" + savedHotel.getId(), response);
+        return response;
     }
 
     @Override
@@ -85,39 +103,67 @@ public class HotelServiceImpl implements HotelService {
 
         return PageResponse.of(hotelPage, content);
     }
+
     @Override
     public HotelResponse getHotelById(Long id) {
-        return hotelMapper.toResponse(findHotelById(id));
+        // Veriyi doğrudan DB'den değil, kendi Proxy'miz (self) üzerinden Cache'den istiyoruz
+        HotelResponse response = self.fetchHotelOrNull(id);
+        if (response == null) {
+            throw new ResourceNotFoundException("Otel bulunamadı! ID: " + id);
+        }
+        return response;
     }
-
     @Transactional
     @Override
-    @CacheEvict(value = "hotelsCache", allEntries = true) //entries br otel silindiginde tüm liste redisten atılıyor.
+    @Caching(evict = {
+            @CacheEvict(value = {"hotelsCache", "topRatedHotels"}, allEntries = true),
+            @CacheEvict(value = "hotelDetails", key = "#id")
+    })
     public HotelResponse updateHotel(Long id, HotelRequest request, String userEmail) {
         Hotel hotel = findHotelById(id);
         assertHotelOwnership(hotel, userEmail);
 
         hotelMapper.updateEntityFromRequest(request, hotel);
         Hotel updatedHotel = hotelRepository.save(hotel);
+        HotelResponse response = hotelMapper.toResponse(updatedHotel);
 
-        // Güncelleme sonrası Elasticsearch senkronizasyonunu tetikle
         eventPublisher.publishEvent(createHotelSyncEvent(updatedHotel));
 
-        return hotelMapper.toResponse(updatedHotel);
+
+        log.info("Otel güncellendi ve Cache'i temizlendi! ID: {}", id);
+        return response;
     }
 
     @Transactional
     @Override
-    @CacheEvict(value = "hotelsCache", allEntries = true)
+    @Caching(evict = {
+            // Genel listeyi ve Anasayfa vitrinini tamamen temizle
+            @CacheEvict(value = {"hotelsCache", "topRatedHotels"}, allEntries = true),
+            // SİLİNEN otelin detay sayfasını Redis'ten uçur
+            @CacheEvict(value = "hotelDetails", key = "#id"),
+            //  Silinen otelin liste halindeki odalarını uçur
+            @CacheEvict(value = "roomsByHotel", key = "#id")
+    })
     public void deleteHotel(Long id, String userEmail) {
         Hotel hotel = findHotelById(id);
         assertHotelOwnership(hotel, userEmail);
 
-        roomRepository.softDeleteByHotelId(id); //önce odaları sil
-        hotel.setDeleted(true); //oteli sil
+        // Önce bu otele ait odaları veritabanından çek (Silinmeden önce ID'lerini almalıyız!)
+        List<Room> rooms = roomRepository.findByHotelId(id);
+
+        // Veritabanı Silme İşlemleri
+        roomRepository.softDeleteByHotelId(id); // önce odaları sil
+        hotel.setDeleted(true); // oteli sil
         hotelRepository.save(hotel);
 
-        // ELASTICSEARCH'TE SİLİNMESİ İÇİN EVENT TETİKLE yani arama motorundan da kaldır.
+        // MANUEL CACHE TEMİZLİĞİ
+       Cache roomDetailsCache = cacheManager.getCache("roomDetails");
+        if (roomDetailsCache != null && rooms != null) {
+            for (Room room : rooms) {
+                roomDetailsCache.evict(room.getId());
+            }
+        }
+
         eventPublisher.publishEvent(new HotelDeleteEvent(id));
     }
 
@@ -141,18 +187,18 @@ public class HotelServiceImpl implements HotelService {
     }
 
     private void assertHotelOwnership(Hotel hotel, String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı"));
+        // Veritabanına İNMEDEN, hafızadaki JWT'den gelen kimlik bilgilerini alıyoruz
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // Eğer kullanıcı ADMIN ise kurala takılmadan geçsin
-        boolean isAdmin = user.getRoles().contains(Role.ADMIN);
+        //  JWT'nin içine koyduğumuz roller arasında ADMIN var mı diye bakıyoruz
+        boolean isAdmin = (auth != null) && auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
 
-        // ADMIN değilse, o zaman "sahiplik" (ownership) kontrolü yap
+        // ADMIN değilse ve otelin sahibi de o değilse hata fırlat
         if (!isAdmin && (hotel.getManager() == null || !Objects.equals(hotel.getManager().getEmail(), userEmail))) {
-            throw new AccessDeniedException("Bu otel üzerinde işlem yapma yetkiniz yok!");
+            throw new AccessDeniedException("Bu işlem için yetkiniz yok!");
         }
     }
-
     private HotelSyncEvent createHotelSyncEvent(Hotel savedHotel) {
         return new HotelSyncEvent(
                 savedHotel.getId(),
@@ -162,6 +208,13 @@ public class HotelServiceImpl implements HotelService {
                 savedHotel.getDistrict(),
                 savedHotel.getRating()
         );
+    }
+    // Sadece Cache ve DB ile konuşur. Bulamazsa Exception atmaz, NULL döner.
+    @Cacheable(value = "hotelDetails", key = "#id", sync = true)
+    public HotelResponse fetchHotelOrNull(Long id) {
+        return hotelRepository.findById(id)
+                .map(hotelMapper::toResponse)
+                .orElse(null); // Yoksa null dön (Redis bunu null olarak önbellekleyecek)
     }
 
 }

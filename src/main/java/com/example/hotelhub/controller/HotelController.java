@@ -7,19 +7,21 @@ import com.example.hotelhub.dto.response.PageResponse;
 import com.example.hotelhub.service.HotelService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 @RestController
 @RequestMapping("/api/hotels")
 @RequiredArgsConstructor
+@Validated // Bu anotasyon path variable validasyonları için şarttır
 @Tag(name = "Hotel Controller", description = "Otel yönetimi işlemleri")
 public class HotelController {
 
@@ -52,7 +54,7 @@ public class HotelController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<HotelResponse> getHotelById(@PathVariable Long id) {
+    public ResponseEntity<HotelResponse> getHotelById(@PathVariable @Positive(message = "ID pozitif bir sayı olmalıdır!") Long id) {
         return ResponseEntity.ok(hotelService.getHotelById(id));
     }
 

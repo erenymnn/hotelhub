@@ -34,7 +34,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html"
                         ).permitAll()
-
+                        .requestMatchers("/actuator/**").permitAll()
                         // Otelleri, odaları ve aramayı herkes görebilir/kullanabilir
                         .requestMatchers(HttpMethod.GET, "/api/hotels/**", "/api/rooms/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/search/**").permitAll()

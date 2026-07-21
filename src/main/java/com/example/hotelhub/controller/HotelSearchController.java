@@ -1,6 +1,7 @@
 package com.example.hotelhub.controller;
 
 import com.example.hotelhub.dto.request.HotelSearchRequest;
+import com.example.hotelhub.dto.response.PageResponse;
 import com.example.hotelhub.elasticsearch.HotelDocument;
 import com.example.hotelhub.service.HotelSearchService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +26,7 @@ public class HotelSearchController {
 
     //En iyi otelleri listeleyen metot
     @GetMapping("/top-rated")
-    public ResponseEntity<Page<HotelDocument>> getTopRatedHotels(
+    public ResponseEntity<PageResponse<HotelDocument>> getTopRatedHotels(
             @RequestParam(defaultValue = "10") int size //kullanıcı değer girmezse 10 adet yani default sırala demek
     ) {
         return ResponseEntity.ok(hotelSearchService.getTopRatedHotels(size));

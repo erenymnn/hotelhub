@@ -12,12 +12,15 @@ import com.example.hotelhub.messaging.producer.BookingProducer;
 import com.example.hotelhub.repository.HotelRepository;
 import com.example.hotelhub.repository.RoomRepository;
 import com.example.hotelhub.repository.UserRepository;
+import com.example.hotelhub.service.RedisCacheService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.OngoingStubbing;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
@@ -25,6 +28,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -53,7 +57,8 @@ class HotelServiceImplTest {
 
     @Mock
     private BookingProducer bookingProducer;
-
+    @Mock
+    private RedisCacheService redisCacheService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
 
@@ -203,6 +208,7 @@ class HotelServiceImplTest {
     @Test
     @DisplayName("Başarılı Senaryo: Otel sahibi kendi otelini soft delete yapabilmeli")
     void deleteHotel_ShouldSoftDeleteHotelAndRooms_WhenOwnerMatches() {
+        // 1. GIVEN
         Long hotelId = 1L;
         String ownerEmail = "owner@user.com";
 
@@ -213,11 +219,17 @@ class HotelServiceImplTest {
         hotel.setId(hotelId);
         hotel.setManager(owner);
 
-        when(hotelRepository.findById(hotelId)).thenReturn(java.util.Optional.of(hotel));
+        // Esnek Mock'lamalar
+        org.mockito.Mockito.lenient().when(userRepository.findByEmail(ownerEmail)).thenReturn(java.util.Optional.of(owner));
+        org.mockito.Mockito.lenient().when(hotelRepository.findById(hotelId)).thenReturn(java.util.Optional.of(hotel));
+
+        // Odayı silme mock'u
         when(roomRepository.softDeleteByHotelId(hotelId)).thenReturn(2);
 
+        // 2. WHEN
         hotelService.deleteHotel(hotelId, ownerEmail);
 
+        // 3. THEN
         assertEquals(true, hotel.isDeleted());
         verify(roomRepository, times(1)).softDeleteByHotelId(hotelId);
         verify(hotelRepository, times(1)).save(hotel);

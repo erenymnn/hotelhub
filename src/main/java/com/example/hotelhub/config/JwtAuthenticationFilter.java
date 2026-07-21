@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -29,16 +30,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String JWT_COOKIE_NAME = "jwt_token";
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
     private final HandlerExceptionResolver exceptionResolver;
 
     @Autowired
     public JwtAuthenticationFilter(
             JwtService jwtService,
-            UserDetailsService userDetailsService,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
         this.jwtService = jwtService;
-        this.userDetailsService = userDetailsService;
         this.exceptionResolver = exceptionResolver;
     }
 
@@ -51,6 +49,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
@@ -72,27 +71,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            //tokenin içini açıyoruz ki kime ait oldugu belli olsun
+            // Token'ın içini açıyoruz
             Claims claims = jwtService.extractAllClaims(jwt);
             String userEmail = claims.getSubject();
-//eğer sisteme kullancı giriş yaptıysa tekrar ugraşmaz
-            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-                if (jwtService.isTokenValid(jwt, userDetails.getUsername())) {
-                    // JWT içinden rolleri alıyoruz
-                    List<String> roles = claims.get("roles", List.class);
-                    List<SimpleGrantedAuthority> authorities = roles.stream()
-                            .map(SimpleGrantedAuthority::new)
-                            .collect(Collectors.toList());
-//burada ise artık sen giriş yapmış birisin
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                // JWT içinden rolleri alıyoruz
+                List<String> roles = claims.get("roles", List.class);
+                List<SimpleGrantedAuthority> authorities = roles.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+                // VERİTABANINA İNMEDEN, sadece hafızada yaşayan sanal bir UserDetails oluşturuyoruz!
+                User principal =
+                        new org.springframework.security.core.userdetails.User(userEmail, "", authorities);
+
+                // Token hala geçerli mi kontrol ediyoruz (Süresi dolmuş mu vs.)
+                // (Senin isTokenValid metodun UserDetails istiyorsa bu sanal principal'ı verebiliriz)
+                if (jwtService.isTokenValid(jwt, principal.getUsername())) {
+
+                    //  Sisteme "Bu kişi yetkilidir" diyoruz
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                            userDetails,
+                            principal,
                             null,
                             authorities
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken); // istegin geri kalanında kullanıcının kim olduğunu bilmesini sağlar
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
             filterChain.doFilter(request, response);

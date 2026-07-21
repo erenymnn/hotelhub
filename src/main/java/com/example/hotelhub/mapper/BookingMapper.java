@@ -11,6 +11,7 @@ public interface BookingMapper {
 
     @Mapping(source = "room.id", target = "roomId") //room.id yi vriyi alıp roomId ye taşı demek
     @Mapping(source = "user.id", target = "userId")
+
     BookingResponse toResponse(Booking booking);
 
     @Mapping(target = "id", ignore = true)
@@ -18,5 +19,6 @@ public interface BookingMapper {
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "totalPrice", ignore = true)
     @Mapping(target = "status", ignore = true)
+    @Mapping(target = "hotelName", ignore = true)
     Booking toEntity(BookingRequest request);
 }

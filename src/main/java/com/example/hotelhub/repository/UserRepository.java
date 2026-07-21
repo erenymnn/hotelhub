@@ -1,6 +1,7 @@
 package com.example.hotelhub.repository;
 
 import com.example.hotelhub.entity.User;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -25,9 +25,18 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 	implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
-
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.redisson:redisson-spring-boot-starter:3.27.2'
+
+		// Spring Boot standart cache ve Redis
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+		// Gözlemlenebilirlik için Actuator ve Prometheus Registry
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
+
 	runtimeOnly 'org.postgresql:postgresql'
 
 

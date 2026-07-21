@@ -5,10 +5,12 @@ import com.example.hotelhub.dto.response.RoomResponse;
 import com.example.hotelhub.service.RoomService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -17,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Room Controller", description = "Oda yönetimi ve otel içi oda işlemleri")
 public class RoomController {
 
@@ -28,7 +31,7 @@ public class RoomController {
     }
 
     @GetMapping("/hotel/{hotelId}")
-    public ResponseEntity<List<RoomResponse>> getRoomsByHotelId(@PathVariable Long hotelId) {
+    public ResponseEntity<List<RoomResponse>> getRoomsByHotelId(@PathVariable @Positive(message = "ID pozitif bir sayı olmalıdır!")  Long hotelId) {
         return ResponseEntity.ok(roomService.getRoomsByHotelId(hotelId));
     }
 

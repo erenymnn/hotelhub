@@ -1,10 +1,12 @@
 package com.example.hotelhub.service.impl;
 
 import com.example.hotelhub.dto.request.HotelSearchRequest;
+import com.example.hotelhub.dto.response.PageResponse;
 import com.example.hotelhub.elasticsearch.HotelDocument;
 import com.example.hotelhub.elasticsearch.HotelElasticRepository;
 import com.example.hotelhub.service.HotelSearchService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -39,10 +41,14 @@ public class HotelSearchServiceImpl implements HotelSearchService {
     }
 
     @Override
-    public Page<HotelDocument> getTopRatedHotels(int size) {
+    // Anasayfa vitrini için ES'yi yormuyoruz. "topRated" adında bir cache oluşturuyoruz.
+    // sync = true diyerek, aynı anda binlerce kişi anasayfaya girse bile ES'ye tek bir sorgu gitmesini sağlıyoruz (Stampede Koruması).
+    @Cacheable(value = "topRatedHotels", key = "#size", sync = true)
+    public PageResponse<HotelDocument> getTopRatedHotels(int size) {
         // En yüksek puanlıları getirmek için rating alanına göre azalan sıralama (DESC)
         Pageable pageable = PageRequest.of(0, Math.min(size, MAX_SIZE), Sort.by(Sort.Direction.DESC, "rating"));
-        return hotelElasticRepository.findAll(pageable);
+        Page<HotelDocument> page = hotelElasticRepository.findAll(pageable);
+        return PageResponse.of(page, page.getContent());
     }
 
     // Yardımcı Metotlar
