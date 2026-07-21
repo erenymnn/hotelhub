@@ -20,6 +20,7 @@ import org.springframework.http.HttpMethod;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter; // Bizim yazdığımız filtre
+    private final RateLimitFilter rateLimitFilter; // Redis tabanlı rate limiting filtresi
     private final AuthenticationProvider authenticationProvider; // ApplicationConfig'deki Bean
 
     @Bean
@@ -51,6 +52,9 @@ public class SecurityConfig {
                         //stateless ile hafızada kimseyi tutma her seferinde kimlik bak sonra unut
                 )
                 .authenticationProvider(authenticationProvider) //Kimlik doğrulama işleminin (kullanıcıyı bulma, şifreyi kontrol etme) nasıl yapılacağını buraya bağlıyoruz.
+                // 🛡️ Rate Limit filtresi en başa ekleniyor → İstek önce buradan geçer
+                // Limit aşıldıysa 429 döner, JWT kontrolüne bile girmez
+                .addFilterBefore(rateLimitFilter, org.springframework.web.filter.CorsFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         //Kendi yazdığımız jwtAuthFilterı, Spring'in standart kullanıcı adı/şifre doğrulama filtresinin önüne yerleştiriyoruz. Böylece kullanıcı istek attığında önce bizim JWT kontrolcümüz çalışıyor.
 
