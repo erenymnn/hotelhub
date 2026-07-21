@@ -36,12 +36,11 @@ public class SecurityConfig {
                                 "/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers("/actuator/**").permitAll()
-                        // Otelleri, odaları ve aramayı herkes görebilir/kullanabilir
+
                         .requestMatchers(HttpMethod.GET, "/api/hotels/**", "/api/rooms/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/search/**").permitAll()
 
-                        // PRIVATE (Sadece Yetkililer)
-                        // Booking işlemleri için en azından giriş yapmış olmak şart
+
                         .requestMatchers("/api/bookings/**").authenticated()
 
                         // Geri kalan her yer için en azından login şart
@@ -52,7 +51,7 @@ public class SecurityConfig {
                         //stateless ile hafızada kimseyi tutma her seferinde kimlik bak sonra unut
                 )
                 .authenticationProvider(authenticationProvider) //Kimlik doğrulama işleminin (kullanıcıyı bulma, şifreyi kontrol etme) nasıl yapılacağını buraya bağlıyoruz.
-                // 🛡️ Rate Limit filtresi en başa ekleniyor → İstek önce buradan geçer
+                //  Rate Limit filtresi en başa ekleniyor → İstek önce buradan geçer
                 // Limit aşıldıysa 429 döner, JWT kontrolüne bile girmez
                 .addFilterBefore(rateLimitFilter, org.springframework.web.filter.CorsFilter.class)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

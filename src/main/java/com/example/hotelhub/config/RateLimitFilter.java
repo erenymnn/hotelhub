@@ -22,17 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Redis tabanlı Rate Limiting filtresi.
- *
- * Her gelen isteğin IP adresini Redis'te bir sayaçla takip eder.
- * Belirlenen pencere süresi içinde maksimum istek sayısı aşılırsa,
- * istek arka uçtaki Java servisine hiç inmeden 429 Too Many Requests döner.
- *
- * Algoritma: Fixed Window Counter
- * Redis Key Formatı: "rate_limit:{ip}"
- * Varsayılan Limit: Dakikada 50 istek
- */
+
 @Slf4j
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
@@ -55,11 +45,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
         this.objectMapper.registerModule(new JavaTimeModule());
     }
 
-    /**
-     * Rate limit kontrolünden muaf tutulacak endpoint'ler.
-     * Actuator (sağlık kontrolü, prometheus) ve Swagger (API dokümantasyonu)
-     * gibi izleme endpoint'leri sınırlandırılmaz.
-     */
+
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
         String path = request.getRequestURI();
@@ -96,7 +82,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             response.setHeader("X-RateLimit-Reset", String.valueOf(ttl != null ? ttl : windowSeconds));
 
             if (currentCount != null && currentCount > maxRequests) {
-                // ⛔ Limit aşıldı! İstek backend'e inmeden burada reddediliyor.
+                // Limit aşıldı! İstek backend'e inmeden burada reddediliyor.
                 log.warn("Rate limit aşıldı! IP: {}, İstek sayısı: {}/{}, Endpoint: {} {}",
                         clientIp, currentCount, maxRequests,
                         request.getMethod(), request.getRequestURI());
@@ -105,7 +91,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 return; // filterChain.doFilter çağrılmıyor → istek arka uca inmez!
             }
 
-            // ✅ Limit içinde, isteği bir sonraki filtreye (JwtAuthFilter → SecurityFilter) geçir
+            // Limit içinde, isteği bir sonraki filtreye (JwtAuthFilter → SecurityFilter) geçir
             filterChain.doFilter(request, response);
 
         } catch (Exception ex) {
@@ -116,11 +102,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
     }
 
-    /**
-     * Gerçek client IP adresini çözer.
-     * Proxy/Load Balancer arkasındaysa X-Forwarded-For header'ından alır,
-     * yoksa doğrudan request'ten alır.
-     */
     private String resolveClientIp(HttpServletRequest request) {
         String xForwardedFor = request.getHeader("X-Forwarded-For");
         if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
@@ -131,10 +112,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return request.getRemoteAddr();
     }
 
-    /**
-     * 429 Too Many Requests JSON yanıtı oluşturur.
-     * ErrorResponse formatıyla uyumlu: {"timestamp": "...", "message": "...", "status": 429}
-     */
     private void writeRateLimitResponse(HttpServletResponse response, Long ttl) throws IOException {
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
