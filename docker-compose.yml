@@ -69,6 +69,7 @@ services:
   redis-cache:
     image: redis:7-alpine
     container_name: hotelhub-redis
+    command: redis-server --maxmemory-policy allkeys-lru
     ports:
       - "6379:6379"
     networks:
