@@ -23,4 +23,11 @@ public class ElasticsearchAdminController {
         String result = elasticsearchIndexService.recreateIndexAndSwapAlias();
         return ResponseEntity.ok(result);
     }
+
+    @PostMapping("/bulk-sync")
+    @Operation(summary = "Bulk API ile Otel Senkronizasyonu", description = "Veritabanındaki tüm otelleri Bulk API kullanarak 500'erli paketler halinde Elasticsearch'e kaydeder.")
+    public ResponseEntity<String> bulkSync() {
+        String result = elasticsearchIndexService.bulkSyncHotels();
+        return ResponseEntity.ok(result);
+    }
 }
