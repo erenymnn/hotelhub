@@ -10,7 +10,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(indexName = "hotel_index_v2", createIndex = false)
+@Document(indexName = "hotel_alias", createIndex = false)
 public class HotelDocument {
 
     @Id

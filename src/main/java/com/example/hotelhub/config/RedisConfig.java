@@ -62,7 +62,7 @@ public class RedisConfig {
     @Bean
     public CacheManager cacheManager(RedisConnectionFactory connectionFactory) {
         return RedisCacheManager.builder(connectionFactory)
-                // Yukarıda yazdığın senin o güzel ayarlarını (TTL, Serializer) yöneticiye veriyoruz
+
                 .cacheDefaults(cacheConfiguration())
                 .enableStatistics()
                 // Bu komut, "hotelsCache" gibi olmayan isimleri gördüğünde hata fırlatmak yerine anında yaratmasını sağlar
