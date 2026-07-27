@@ -26,6 +26,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.CacheManager;
 
 import java.util.List;
 import java.util.Optional;
@@ -64,6 +65,14 @@ class HotelServiceImplTest {
 
     @InjectMocks
     private HotelServiceImpl hotelService;
+
+    @Mock
+    private CacheManager cacheManager;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        org.springframework.test.util.ReflectionTestUtils.setField(hotelService, "self", hotelService);
+    }
 
 
 
@@ -199,7 +208,7 @@ class HotelServiceImplTest {
                 () -> hotelService.updateHotel(hotelId, request, requesterEmail)
         );
 
-        assertEquals("Bu işlem için yetkiniz yok! Sadece kendi otelinizi yönetebilirsiniz.", exception.getMessage());
+        assertEquals("Bu işlem için yetkiniz yok!", exception.getMessage());
 
         // KRİTİK: Yetkisiz işlem olduğu için save() METODU ASLA ÇAĞRILMAMALI! (Güvenlik Testi)
         verify(hotelRepository, never()).save(any(Hotel.class));
@@ -225,6 +234,9 @@ class HotelServiceImplTest {
 
         // Odayı silme mock'u
         when(roomRepository.softDeleteByHotelId(hotelId)).thenReturn(2);
+
+        org.springframework.cache.Cache mockCache = org.mockito.Mockito.mock(org.springframework.cache.Cache.class);
+        org.mockito.Mockito.lenient().when(cacheManager.getCache(org.mockito.ArgumentMatchers.anyString())).thenReturn(mockCache);
 
         // 2. WHEN
         hotelService.deleteHotel(hotelId, ownerEmail);

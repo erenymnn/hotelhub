@@ -18,7 +18,7 @@ public interface RoomRepository extends JpaRepository<Room, Long> {
     int softDeleteByHotelId(@Param("hotelId") Long hotelId);
 
     // RoomRepository içine şu metodu ekle:
-    @Query("SELECT r FROM Room r WHERE r.hotel.id = :hotelId AND r.deleted = false")
+    @Query("SELECT r FROM Room r WHERE r.hotel.id = :hotelId AND r.deleted = false AND r.isAvailable = true")
     List<Room> findAvailableRoomsByHotelId(@Param("hotelId") Long hotelId);
 
     List<Room> findByHotelId(Long hotelId);
